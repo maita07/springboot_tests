@@ -13,6 +13,7 @@ pipeline {
                     //sh 'sudo apt-get update'
                     // Instalar Neofetch
                     //sh 'sudo apt-get install -y openjdk-17-jdk'
+                    echo 'todo piola'
                 }
             }
         }
