@@ -1,5 +1,5 @@
 # Usar una imagen base con Maven y OpenJDK
-FROM maven:3.8.3-openjdk-17 AS builder
+FROM maven:3.8.5-openjdk-17 AS builder
 
 RUN apt-get update && apt-get install -y \
     openjdk-17-jdk \
