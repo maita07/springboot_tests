@@ -39,9 +39,9 @@ pipeline {
     }
     post {
         failure {
-            emailext body: 'AGUANTE BOCA!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!',
-            subject: 'Todo mal!!!!!!!!!!! fallllllóooooooooo',
-            to: 'francocongedo@gmail.com'
+            emailext body: 'Fail pipeline-aut-mobile',
+            subject: 'Pipeline Fail',
+            to: 'jose.maita@eldars.com.ar'
         }
     }
 }
