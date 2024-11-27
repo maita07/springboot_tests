@@ -36,6 +36,16 @@ pipeline {
                 }
             }
         }
+        stage('Build & Run Docker') {
+            steps {
+                script {
+                    sh 'docker build -t myapp .'
+                    sh 'docker run -d -p 8081:8081 myapp'
+
+                    echo 'Desplegar la aplicación en un servidor o Docker'
+                }
+            }
+        }
     }
     post {
         failure {
