@@ -39,9 +39,9 @@ pipeline {
     }
     post {
         failure {
-            mail to: 'francocongedo@gmail.com',
-                 subject: "Fallo en Pipeline: ${currentBuild.fullDisplayName}",
-                 body: "Revisa el pipeline en ${env.BUILD_URL}"
+            emailext body: 'AGUANTE BOCA!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!',
+            subject: 'Todo mal!!!!!!!!!!! fallllllóooooooooo',
+            to: 'francocongedo@gmail.com'
         }
     }
 }
