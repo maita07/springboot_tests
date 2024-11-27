@@ -2,7 +2,6 @@ pipeline {
     agent any
     tools {
         maven 'Maven 3.9.9'
-        jdk 'jdk-17'
     }
 
     stages {
@@ -10,9 +9,9 @@ pipeline {
             steps {
                 script {
                     // Actualizar los repositorios de paquetes
-                    //sh 'sudo apt-get update'
-                    // Instalar Neofetch
-                    //sh 'sudo apt-get install -y openjdk-17-jdk'
+                    sh 'sudo apt-get update'
+                    // Instalar java 17
+                    sh 'sudo apt-get install -y openjdk-17-jdk'
                     echo 'todo piola'
                 }
             }
