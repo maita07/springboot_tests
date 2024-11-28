@@ -20,7 +20,8 @@ pipeline {
                     sh 'sudo apt-get update'
                     // Instalar java 17
                     sh 'sudo apt-get install -y openjdk-17-jdk'
-                    echo "El autor del commit es: ${env.GIT_AUTHOR_NAME}"
+                    // def gitAuthorName = sh(script: 'git log -1 --format=%an', returnStdout: true).trim()
+                    echo "El autor del commit es: ${BUILD_TRIGGER_BY}"
                 }
             }
         }
