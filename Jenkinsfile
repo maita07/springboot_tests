@@ -3,8 +3,16 @@ pipeline {
     tools {
         maven 'Maven 3.9.9'
     }
-
+agua = 'cate'
     stages {
+        stage("Build Info") {
+            steps {
+                script {
+                    BUILD_TRIGGER_BY = currentBuild.getBuildCauses()[0].userId
+                    currentBuild.displayName = "#${env.BUILD_NUMBER} By:${BUILD_TRIGGER_BY} "                    
+                }
+            }
+        }
         stage('Instalar Java 17') {
             steps {
                 script {
@@ -40,6 +48,9 @@ pipeline {
             steps {
                 script {
                     sh 'docker build -t myapp .'
+                    // Detener y eliminar el contenedor existente si está en ejecución
+                    sh "docker stop myapp || true"
+                    sh "docker rm -f myapp || true"
                     sh 'docker run -d -p 8081:8081 myapp'
 
                     echo 'Desplegar la aplicación en un servidor o Docker'
@@ -50,7 +61,7 @@ pipeline {
     post {
         failure {
                 emailext(
-                body: """Error en las Pruebas Unitarias, mire el siguiente archivo xml""",
+                body: """Error en las Pruebas Unitarias, mire el siguiente archivo xml ${agua}""",
                 subject: 'Fallaron las pruebas...',
                 to: 'jose.maita@eldars.com.ar',
                 mimeType: 'text/html',
