@@ -49,8 +49,8 @@ pipeline {
                 script {
                     sh 'docker build -t myapp .'
                     // Detener y eliminar el contenedor existente si está en ejecución
-                    sh "docker stop myapp || true"
-                    sh "docker rm -f myapp || true"
+                    //sh "docker stop myapp || true"
+                    //sh "docker rm -f myapp || true"
                     sh 'docker run -d -p 8081:8081 myapp'
 
                     echo 'Desplegar la aplicación en un servidor o Docker'
