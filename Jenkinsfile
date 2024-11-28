@@ -50,7 +50,8 @@ pipeline {
                     // Detener y eliminar el contenedor existente si está en ejecución
                     sh "docker stop myapp || true"
                     sh "docker rm -f myapp || true"
-                    sh 'docker run -d -p 8081:8081 myapp --name myapp'
+                    sh "sleep 10"
+                    sh 'docker run -d -p 8081:8081 --name myapp myapp'
 
                     echo 'Desplegar la aplicación en un servidor o Docker'
                 }
