@@ -9,7 +9,7 @@ pipeline {
             steps {
                 script {
                     BUILD_TRIGGER_BY = currentBuild.getBuildCauses()[0].userId
-                    currentBuild.displayName = "#${env.BUILD_NUMBER} By:${BUILD_TRIGGER_BY} "                    
+                    currentBuild.displayName = "#${env.BUILD_NUMBER}"                    
                 }
             }
         }
