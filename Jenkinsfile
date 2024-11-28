@@ -25,6 +25,7 @@ pipeline {
                     sh 'sudo apt-get install -y openjdk-17-jdk'
                     // def gitAuthorName = sh(script: 'git log -1 --format=%an', returnStdout: true).trim()
                     echo "El autor del commit es: ${BUILD_TRIGGER_BY}"
+                    echo "${pwd}"
                 }
             }
         }
@@ -86,13 +87,12 @@ pipeline {
                 // Si las pruebas fallaron, incluir los detalles de las pruebas fallidas en el correo
                 if (currentBuild.currentResult == 'FAILURE') {
                     // Leer los resultados de las pruebas fallidas
-                    def failedTests = readFile('target/surefire-reports/*.txt')
-                    def failedTestNames = failedTests.readLines().findAll { it.contains('FAIL') }.join('\n')
+                    //def failedTests = readFile('target/surefire-reports/*.txt')
+                    //def failedTestNames = failedTests.readLines().findAll { it.contains('FAIL') }.join('\n')
 
                     // Modificar el cuerpo del correo para agregar los detalles de las pruebas fallidas
                     body += """
                         <h3>Las siguientes pruebas fallaron en el paquete ${PACKAGE_NAME} versión ${VERSION}:</h3>
-                        <pre>${failedTestNames}</pre>
                         <p>Por favor, revisa los reportes de las pruebas en:</p>
                         <a href="${env.GIT_URL}/-/jobs/${BUILD_NUMBER}/test_report">Ver reporte de pruebas</a>
                     """
