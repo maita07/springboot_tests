@@ -3,8 +3,9 @@ pipeline {
     tools {
         maven 'Maven 3.9.9'
     }
-agua = 'cate'
+
     stages {
+        agua = 'cate'
         stage("Build Info") {
             steps {
                 script {
