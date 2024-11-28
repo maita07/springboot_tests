@@ -59,33 +59,36 @@ pipeline {
     }
     post {
         always {
-            // Definir el asunto y cuerpo del correo con base en el resultado del build
-            def subject = "Jenkins Build #${BUILD_NUMBER} - ${currentBuild.currentResult}"
-            def body = """
-                <p>El build ha terminado con el siguiente resultado: ${currentBuild.currentResult}</p>
-                <p>Detalles del commit:</p>
-                <ul>
-                    <li><strong>Commit:</strong> ${GIT_COMMIT}</li>
-                    <li><strong>Autor:</strong> ${GIT_AUTHOR_NAME}</li>
-                    <li><strong>Mensaje del commit:</strong> ${GIT_COMMIT_MESSAGE}</li>
-                </ul>
-                <p>Ver detalles en Jenkins: ${BUILD_URL}</p>
-            """
-            
-            // Si las pruebas fallaron, incluir los detalles de las pruebas fallidas en el cuerpo del correo
-            if (currentBuild.currentResult == 'FAILURE') {
-                // Leer los resultados de las pruebas fallidas
-                def failedTests = readFile('target/surefire-reports/*.txt')
-                def failedTestNames = failedTests.readLines().findAll { it.contains('FAIL') }.join('\n')
-
-                // Modificar el cuerpo del correo para agregar los detalles de las pruebas fallidas
-                body += """
-                    <h3>Las siguientes pruebas fallaron en el paquete ${PACKAGE_NAME} versión ${VERSION}:</h3>
-                    <pre>${failedTestNames}</pre>
-                    <p>Por favor, revisa los reportes de las pruebas en:</p>
-                    <a href="${env.GIT_URL}/-/jobs/${BUILD_NUMBER}/test_report">Ver reporte de pruebas</a>
+            script{
+                // Definir el asunto y cuerpo del correo con base en el resultado del build
+                def subject = "Jenkins Build #${BUILD_NUMBER} - ${currentBuild.currentResult}"
+                def body = """
+                    <p>El build ha terminado con el siguiente resultado: ${currentBuild.currentResult}</p>
+                    <p>Detalles del commit:</p>
+                    <ul>
+                        <li><strong>Commit:</strong> ${GIT_COMMIT}</li>
+                        <li><strong>Autor:</strong> ${GIT_AUTHOR_NAME}</li>
+                        <li><strong>Mensaje del commit:</strong> ${GIT_COMMIT_MESSAGE}</li>
+                    </ul>
+                    <p>Ver detalles en Jenkins: ${BUILD_URL}</p>
                 """
+                
+                // Si las pruebas fallaron, incluir los detalles de las pruebas fallidas en el cuerpo del correo
+                if (currentBuild.currentResult == 'FAILURE') {
+                    // Leer los resultados de las pruebas fallidas
+                    def failedTests = readFile('target/surefire-reports/*.txt')
+                    def failedTestNames = failedTests.readLines().findAll { it.contains('FAIL') }.join('\n')
+
+                    // Modificar el cuerpo del correo para agregar los detalles de las pruebas fallidas
+                    body += """
+                        <h3>Las siguientes pruebas fallaron en el paquete ${PACKAGE_NAME} versión ${VERSION}:</h3>
+                        <pre>${failedTestNames}</pre>
+                        <p>Por favor, revisa los reportes de las pruebas en:</p>
+                        <a href="${env.GIT_URL}/-/jobs/${BUILD_NUMBER}/test_report">Ver reporte de pruebas</a>
+                    """
+                }
             }
+            
 
             // Enviar el correo
             emailext(
