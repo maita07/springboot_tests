@@ -20,6 +20,7 @@ pipeline {
                     sh 'sudo apt-get update'
                     // Instalar java 17
                     sh 'sudo apt-get install -y openjdk-17-jdk'
+                    echo "El autor del commit es: ${env.GIT_AUTHOR_NAME}"
                 }
             }
         }
@@ -58,7 +59,7 @@ pipeline {
         }
     }
     post {
-        always {
+        failure {
             script{
                 // Definir el asunto y cuerpo del correo con base en el resultado del build
                 def subject = "Jenkins Build #${BUILD_NUMBER} - ${currentBuild.currentResult}"
