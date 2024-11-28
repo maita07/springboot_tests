@@ -3,7 +3,10 @@ pipeline {
     tools {
         maven 'Maven 3.9.9'
     }
-
+    environment {
+        MI_VARIABLE = 'valor'
+        OTRA_VARIABLE = 'otro_valor'
+    }
     stages {
         stage("Build Info") {
             steps {
@@ -61,21 +64,26 @@ pipeline {
     }
     post {
         failure {
-            script{
+            script {
+                // Asegúrate de realizar el checkout antes de obtener variables de Git
+                def gitCommit = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
+                def gitAuthorName = sh(script: 'git log -1 --pretty=%an', returnStdout: true).trim()
+                def gitCommitMessage = sh(script: 'git log -1 --pretty=%B', returnStdout: true).trim()
+
                 // Definir el asunto y cuerpo del correo con base en el resultado del build
                 def subject = "Jenkins Build #${BUILD_NUMBER} - ${currentBuild.currentResult}"
                 def body = """
                     <p>El build ha terminado con el siguiente resultado: ${currentBuild.currentResult}</p>
                     <p>Detalles del commit:</p>
                     <ul>
-                        <li><strong>Commit:</strong> ${GIT_COMMIT}</li>
-                        <li><strong>Autor:</strong> ${GIT_AUTHOR_NAME}</li>
-                        <li><strong>Mensaje del commit:</strong> ${GIT_COMMIT_MESSAGE}</li>
+                        <li><strong>Commit:</strong> ${gitCommit}</li>
+                        <li><strong>Autor:</strong> ${gitAuthorName}</li>
+                        <li><strong>Mensaje del commit:</strong> ${gitCommitMessage}</li>
                     </ul>
                     <p>Ver detalles en Jenkins: ${BUILD_URL}</p>
                 """
-                
-                // Si las pruebas fallaron, incluir los detalles de las pruebas fallidas en el cuerpo del correo
+
+                // Si las pruebas fallaron, incluir los detalles de las pruebas fallidas en el correo
                 if (currentBuild.currentResult == 'FAILURE') {
                     // Leer los resultados de las pruebas fallidas
                     def failedTests = readFile('target/surefire-reports/*.txt')
@@ -89,17 +97,15 @@ pipeline {
                         <a href="${env.GIT_URL}/-/jobs/${BUILD_NUMBER}/test_report">Ver reporte de pruebas</a>
                     """
                 }
+
+                // Enviar el correo
+                emailext(
+                    subject: subject,
+                    body: body,
+                    to: 'jose.maita@gmail.com',
+                    mimeType: 'text/html'
+                )
             }
-            
-
-            // Enviar el correo
-            emailext(
-                subject: subject,
-                body: body,
-                to: 'jose.maita@gmail.com',
-                mimeType: 'text/html'
-            )
         }
-
     }
 }
