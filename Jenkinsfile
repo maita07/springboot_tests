@@ -49,9 +49,11 @@ pipeline {
     }
     post {
         failure {
-            emailext body: 'Fail pipeline-aut-mobile',
+            def testOutput = readFile('**/target/surefire-reports/*.xml')
+            emailext(
+            body: """<pre>${testOutput}</pre>""",
             subject: 'Pipeline Fail',
-            to: 'jose.maita@eldars.com.ar'
+            to: 'jose.maita@eldars.com.ar' )
         }
     }
 }
