@@ -49,14 +49,13 @@ pipeline {
     }
     post {
         failure {
-            script {
-                testOutput = readFile('**/target/surefire-reports/*.xml')
                 emailext(
-                body: """<pre>${testOutput}</pre>""",
-                subject: 'Pipeline Fail',
+                body: """Error en las Pruebas Unitarias, mire el siguiente archivo xml""",
+                subject: 'Fallaron las pruebas...',
                 to: 'jose.maita@eldars.com.ar',
-                mimeType: 'text/html' )
-            }
+                mimeType: 'text/html',
+                attachmentsPattern: '**/target/surefire-reports/*.xml'
+                )
         }
     }
 }
