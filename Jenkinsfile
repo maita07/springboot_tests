@@ -5,7 +5,6 @@ pipeline {
     }
 
     stages {
-        agua = 'cate'
         stage("Build Info") {
             steps {
                 script {
@@ -62,7 +61,7 @@ pipeline {
     post {
         failure {
                 emailext(
-                body: """Error en las Pruebas Unitarias, mire el siguiente archivo xml ${agua}""",
+                body: """Error en las Pruebas Unitarias, mire el siguiente archivo xml""",
                 subject: 'Fallaron las pruebas...',
                 to: 'jose.maita@eldars.com.ar',
                 mimeType: 'text/html',
