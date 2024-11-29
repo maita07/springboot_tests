@@ -8,7 +8,7 @@ pipeline {
             steps {
                 script {
                     BUILD_TRIGGER_BY = currentBuild.getBuildCauses()[0].userId
-                    currentBuild.displayName = "#${env.BUILD_NUMBER}"                    
+                    currentBuild.displayName = "#${env.BUILD_NUMBER}"
                 }
             }
         }
@@ -69,17 +69,23 @@ pipeline {
                     <p>Ver detalles en Jenkins: ${BUILD_URL}</p>
                 """
 
-                // Si las pruebas fallaron, incluir los detalles de las pruebas fallidas en el correo
-                if (currentBuild.currentResult == 'FAILURE') {
-//def failedTests = readFile('target/surefire-reports/*.txt')
-                    //def failedTestNames = failedTests.readLines().findAll { it.contains('FAIL') }.join('\n')
- //<h3>Las siguientes pruebas fallaron en el paquete ${PACKAGE_NAME} versión ${VERSION}:</h3>
-                    // Modificar el cuerpo del correo para agregar los detalles de las pruebas fallidas
+                // Extraer detalles de pruebas fallidas
+                def failedTests = sh(
+                    script: 'grep "<failure" target/surefire-reports/*.xml || true',
+                    returnStdout: true
+                ).trim().split('\n')
+
+                // Limitar a 50 errores
+                def limitedErrors = failedTests.take(50)
+                if (limitedErrors) {
                     body += """
-                        <p>Por favor, revisa los reportes de las pruebas en:</p>
+                        <h3>Las siguientes pruebas fallaron:</h3>
+                        <pre>${limitedErrors.join('\n')}</pre>
+                        <p>Por favor, revisa los reportes completos de las pruebas en:</p>
                         <a href="${env.GIT_URL}/-/jobs/${BUILD_NUMBER}/test_report">Ver reporte de pruebas</a>
                     """
                 }
+
                 // Enviar el correo
                 emailext(
                     subject: subject,
