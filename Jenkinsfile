@@ -33,6 +33,7 @@ pipeline {
         stage('Ejecutar pruebas unitarias') {
             steps {
                 sh 'mvn test'
+                junit '**/target/surefire-reports/*.xml'
             }
         }
         stage('Build & Run Docker') {
@@ -52,47 +53,38 @@ pipeline {
             // Obtener el commit y los detalles del autor
             def gitCommit = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
             def gitAuthorName = sh(script: 'git log -1 --pretty=%an', returnStdout: true).trim()
+            def gitAuthorEmail = sh(script: 'git log -1 --pretty=%ae', returnStdout: true).trim()
             def gitCommitMessage = sh(script: 'git log -1 --pretty=%B', returnStdout: true).trim()
 
-            // Leer los resultados de las pruebas unitarias
-            def failedTests = []
-            def testReports = sh(script: 'find target/surefire-reports/ -name "*.xml"', returnStdout: true).trim().split("\n")
-
-            testReports.each { report ->
-                // Usar readXML para leer y analizar el XML
-                def xmlContent = readFile report
-                def xml = readXML text: xmlContent
-
-                // Verificar fallos
-                xml.testsuite.testcase.each { testcase ->
-                    if (testcase.failure) {
-                        failedTests.add("Test failed: ${testcase.@classname}.${testcase.@name} - ${testcase.failure.@message}")
-                    }
+            def failedTests = currentBuild.rawBuild.getAction(hudson.tasks.junit.TestResultAction).getFailedTests()
+                def failedTestsList = []
+                failedTests.each { test ->
+                    failedTestsList.add("Test failed: ${test.name}")
                 }
-            }
 
-            // Definir el asunto y cuerpo del correo con base en el resultado del build
-            def subject = "Jenkins Build #${BUILD_NUMBER} - ${currentBuild.currentResult}"
-            def body = """
-                <p>El build ha terminado con el siguiente resultado: ${currentBuild.currentResult}</p>
-                <p>Detalles del commit:</p>
-                <ul>
-                    <li><strong>Commit:</strong> ${gitCommit}</li>
-                    <li><strong>Autor:</strong> ${gitAuthorName}</li>
-                    <li><strong>Mensaje del commit:</strong> ${gitCommitMessage}</li>
-                </ul>
-                <p>Ver detalles en Jenkins: ${BUILD_URL}</p>
-            """
-
-            // Si alguna prueba falló, agregar los detalles al cuerpo del correo
-            if (failedTests.size() > 0) {
-                body += """
-                    <h3>Las siguientes pruebas fallaron:</h3>
+                // Definir el asunto y cuerpo del correo con base en el resultado del build
+                def subject = "Jenkins Build #${BUILD_NUMBER} - ${currentBuild.currentResult}"
+                def body = """
+                    <p>El build ha terminado con el siguiente resultado: ${currentBuild.currentResult}</p>
+                    <p>Detalles del commit:</p>
                     <ul>
-                        ${failedTests.collect { "<li>${it}</li>" }.join()}
+                        <li><strong>Commit:</strong> ${gitCommit}</li>
+                        <li><strong>Autor:</strong> ${gitAuthorName}</li>
+                        <li><strong>Mensaje del commit:</strong> ${gitCommitMessage}</li>
                     </ul>
+                    <p>Ver detalles en Jenkins: ${BUILD_URL}</p>
                 """
-            }
+
+                // Si alguna prueba falló, agregar los detalles al cuerpo del correo
+                if (failedTestsList.size() > 0) {
+                    body += """
+                        <h3>Las siguientes pruebas fallaron:</h3>
+                        <ul>
+                            ${failedTestsList.collect { "<li>${it}</li>" }.join()}
+                        </ul>
+                    """
+                }
+
 
             // Enviar el correo
             emailext(
