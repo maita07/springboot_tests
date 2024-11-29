@@ -84,10 +84,10 @@ pipeline {
                     // Leer los resultados de las pruebas fallidas
                     //def failedTests = readFile('target/surefire-reports/*.txt')
                     //def failedTestNames = failedTests.readLines().findAll { it.contains('FAIL') }.join('\n')
-
+                    // <h3>Las siguientes pruebas fallaron en el paquete ${PACKAGE_NAME} versión ${VERSION}:</h3>
                     // Modificar el cuerpo del correo para agregar los detalles de las pruebas fallidas
                     body += """
-                        <h3>Las siguientes pruebas fallaron en el paquete ${PACKAGE_NAME} versión ${VERSION}:</h3>
+                        
                         <p>Por favor, revisa los reportes de las pruebas en:</p>
                         <a href="${env.GIT_URL}/-/jobs/${BUILD_NUMBER}/test_report">Ver reporte de pruebas</a>
                     """
