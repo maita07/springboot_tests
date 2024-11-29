@@ -51,7 +51,7 @@ pipeline {
             }
         }
     }
-    post {
+post {
     failure {
         script {
             // Obtener el commit y los detalles del autor
