@@ -75,7 +75,7 @@ pipeline {
                 returnStdout: true
                 ).trim().split('\n')
                 def date = new Date().format('yyyy-MM-dd-HH-mm-ss')
-                sh "cp target/surefire-reports/*.txt /home/labqa/logs-pipeline-mobile/test-log-${date}/"
+                sh "sudo cp target/surefire-reports/*.txt /home/labqa/logs-pipeline-mobile/test-log-${date}/"
 
                 // Guardar los detalles de las pruebas fallidas en el archivo
                 writeFile file: filePath, text: failedTests.join('\n')
