@@ -51,7 +51,6 @@ pipeline {
     post {
         failure {
             script {
-                    // Obtener detalles del commit
                     def gitCommit = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
                     def gitAuthorName = sh(script: 'git log -1 --pretty=%an', returnStdout: true).trim()
                     def gitCommitMessage = sh(script: 'git log -1 --pretty=%B', returnStdout: true).trim()
@@ -78,11 +77,8 @@ pipeline {
                 sh "sudo mkdir /home/labqa/logs-pipeline-mobile/test-log-${date}"
                 sh "sudo cp target/surefire-reports/*.txt /home/labqa/logs-pipeline-mobile/test-log-${date}"
 
-                // Guardar los detalles de las pruebas fallidas en el archivo
-                //writeFile file: filePath, text: failedTests.join('\n')
 
-
-                // Limitar a 50 errores sin usar take()
+                // Limitar a 50 errores
                 def limitedErrors = []
                 def errorCount = 0
 
@@ -93,23 +89,19 @@ pipeline {
                     }
                 }
                 
-                //<pre>${limitedErrors.join('\n')}</pre>
                 if (limitedErrors) {
                 body += """
                 <h3>Información de los siguientes Sets de Tests:</h3>
                 
                 <pre>${limitedErrors.join('\n')}</pre>
-                <p>Por favor, revisa los reportes completos de las pruebas en:</p>
-                <a href="${env.GIT_URL}">Ver reporte de pruebas</a>
+                <p>Por favor, revisa los reportes completos de las pruebas en: /home/labqa/logs-pipeline-mobile</p>
                 """
                 }
              
-
-                // Enviar el correo
                 emailext(
                     subject: subject,
                     body: body,
-                    to: 'nicolas.batistelli@eldars.com.ar', // Utilizando el correo del autor del commit
+                    to: 'alan.brance@eldars.com.ar',
                     mimeType: 'text/html',
                     attachmentsPattern: 'target/surefire-reports/*.txt'
                 )
