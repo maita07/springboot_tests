@@ -79,7 +79,7 @@ pipeline {
                 sh "sudo cp target/surefire-reports/*.txt /home/labqa/logs-pipeline-mobile/test-log-${date}"
 
                 // Guardar los detalles de las pruebas fallidas en el archivo
-                writeFile file: filePath, text: failedTests.join('\n')
+                //writeFile file: filePath, text: failedTests.join('\n')
 
 
                 // Limitar a 50 errores sin usar take()
@@ -111,7 +111,7 @@ pipeline {
                     body: body,
                     to: 'nicolas.batistelli@eldars.com.ar', // Utilizando el correo del autor del commit
                     mimeType: 'text/html',
-                    attachmentsPattern: filePath
+                    attachmentsPattern: 'target/surefire-reports/*.txt'
                 )
             }
         }
