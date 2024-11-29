@@ -3,10 +3,6 @@ pipeline {
     tools {
         maven 'Maven 3.9.9'
     }
-    environment {
-        MI_VARIABLE = 'valor'
-        OTRA_VARIABLE = 'otro_valor'
-    }
     stages {
         stage("Build Info") {
             steps {
@@ -48,12 +44,9 @@ pipeline {
             steps {
                 script {
                     sh 'docker build -t myapp .'
-                    // Detener y eliminar el contenedor existente si está en ejecución
                     sh "docker stop myapp || true"
                     sh "docker rm -f myapp || true"
                     sh 'docker run -d -p 8081:8081 --name myapp myapp'
-
-                    echo 'Desplegar la aplicación en un servidor o Docker'
                 }
             }
         }
@@ -61,12 +54,9 @@ pipeline {
     post {
         failure {
             script {
-                // Asegúrate de realizar el checkout antes de obtener variables de Git
                 def gitCommit = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
                 def gitAuthorName = sh(script: 'git log -1 --pretty=%an', returnStdout: true).trim()
                 def gitCommitMessage = sh(script: 'git log -1 --pretty=%B', returnStdout: true).trim()
-
-                // Definir el asunto y cuerpo del correo con base en el resultado del build
                 def subject = "Jenkins Build #${BUILD_NUMBER} - ${currentBuild.currentResult}"
                 def body = """
                     <p>El build ha terminado con el siguiente resultado: ${currentBuild.currentResult}</p>
