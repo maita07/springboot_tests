@@ -47,7 +47,17 @@ pipeline {
             }
         }
     }
-    // Acceder a los resultados de las pruebas fallidas sin usar getRawBuild
+
+    post {
+        failure {
+            script {
+                // Obtener detalles del commit
+                def gitCommit = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
+                def gitAuthorName = sh(script: 'git log -1 --pretty=%an', returnStdout: true).trim()
+                def gitCommitMessage = sh(script: 'git log -1 --pretty=%B', returnStdout: true).trim()
+                def gitAuthorEmail = sh(script: 'git log -1 --pretty=%ae', returnStdout: true).trim()
+
+                // Obtener resultados de las pruebas fallidas
                 def testResultAction = currentBuild.getAction(hudson.tasks.junit.TestResultAction)
                 def failedTests = testResultAction?.getFailedTests()
                 def failedTestsList = []
@@ -58,7 +68,7 @@ pipeline {
                 }
 
                 // Definir el cuerpo del correo
-                def subject = "Jenkins Build #${BUILD_NUMBER} - ${currentBuild.currentResult}"
+                def subject = "Jenkins Build #${env.BUILD_NUMBER} - ${currentBuild.currentResult}"
                 def body = """
                     <p>El build ha terminado con el siguiente resultado: ${currentBuild.currentResult}</p>
                     <p>Detalles del commit:</p>
@@ -67,7 +77,7 @@ pipeline {
                         <li><strong>Autor:</strong> ${gitAuthorName}</li>
                         <li><strong>Mensaje del commit:</strong> ${gitCommitMessage}</li>
                     </ul>
-                    <p>Ver detalles en Jenkins: ${BUILD_URL}</p>
+                    <p>Ver detalles en Jenkins: <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
                 """
 
                 // Si alguna prueba falló, agregar los detalles al cuerpo del correo
@@ -80,15 +90,14 @@ pipeline {
                     """
                 }
 
-
-            // Enviar el correo
-            emailext(
-                subject: subject,
-                body: body,
-                to: ${gitAuthorEmail},
-                mimeType: 'text/html'
-            )
+                // Enviar el correo
+                emailext(
+                    subject: subject,
+                    body: body,
+                    to: gitAuthorEmail, // Utilizando el correo del autor del commit
+                    mimeType: 'text/html'
+                )
+            }
         }
     }
 }
-
