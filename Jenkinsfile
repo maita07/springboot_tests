@@ -93,7 +93,7 @@ pipeline {
                 
                 <pre>${limitedErrors.join('\n')}</pre>
                 <p>Por favor, revisa los reportes completos de las pruebas en:</p>
-                <a href="${env.GIT_URL}/-/jobs/${BUILD_NUMBER}/test_report">Ver reporte de pruebas</a>
+                <a href="${env.GIT_URL}">Ver reporte de pruebas</a>
                 """
                 }
              
@@ -104,6 +104,7 @@ pipeline {
                     body: body,
                     to: 'nicolas.batistelli@eldars.com.ar', // Utilizando el correo del autor del commit
                     mimeType: 'text/html'
+                    attachmentsPattern: 'target/surefire-reports/*.txt'
                 )
             }
         }
