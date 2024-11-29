@@ -80,7 +80,7 @@ pipeline {
                 def errorCount = 0
 
                 failedTests.each { error ->
-                if (errorCount < 50) {
+                if (errorCount < 2) {
                     limitedErrors.add(error)
                     errorCount++
                     }
