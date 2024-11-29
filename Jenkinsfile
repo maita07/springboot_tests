@@ -91,7 +91,7 @@ pipeline {
                 body += """
                 <h3>Las siguientes pruebas fallaron:</h3>
                 
-                <pre>${failedTests}</pre>
+                <pre>${failedTests.join('\n')}</pre>
                 <p>Por favor, revisa los reportes completos de las pruebas en:</p>
                 <a href="${env.GIT_URL}/-/jobs/${BUILD_NUMBER}/test_report">Ver reporte de pruebas</a>
                 """
