@@ -102,7 +102,7 @@ pipeline {
                 emailext(
                     subject: subject,
                     body: body,
-                    to: nicolas.batistelli@eldars.com.ar, // Utilizando el correo del autor del commit
+                    to: 'nicolas.batistelli@eldars.com.ar', // Utilizando el correo del autor del commit
                     mimeType: 'text/html'
                 )
             }
