@@ -19,19 +19,14 @@ pipeline {
         stage('Instalar Java 17') {
             steps {
                 script {
-                    // Actualizar los repositorios de paquetes
                     sh 'sudo apt-get update'
-                    // Instalar java 17
                     sh 'sudo apt-get install -y openjdk-17-jdk'
-                    // def gitAuthorName = sh(script: 'git log -1 --format=%an', returnStdout: true).trim()
-                    echo "El autor del commit es: ${BUILD_TRIGGER_BY}"
-                    echo "${pwd}"
                 }
             }
         }
         stage('Clonar código fuente') {
             steps {
-                git branch: 'main', url: 'https://github.com/maita07/springboot_tests.git'
+                checkout scm
             }
         }
         stage('Instalar dependencias') {
