@@ -97,7 +97,7 @@ pipeline {
                 emailext(
                     subject: subject,
                     body: body,
-                    to: 'jose.maita@gmail.com',
+                    to: 'jose.maita@eldars.com.ar',
                     mimeType: 'text/html'
                 )
             }
