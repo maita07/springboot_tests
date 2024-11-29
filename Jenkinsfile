@@ -75,9 +75,7 @@ pipeline {
                 returnStdout: true
                 ).trim().split('\n')
                 def date = new Date().format('yyyy-MM-dd-HH-mm-ss')
-
-                // Definir la ruta de destino para el archivo
-                def filePath = "/home/labqa/logs-pipeline-mobile/test-log-${date}.txt"
+                shutil.copy('target/surefire-reports/*.txt', '/home/labqa/logs-pipeline-mobile/test-log-${date}/')
 
                 // Guardar los detalles de las pruebas fallidas en el archivo
                 writeFile file: filePath, text: failedTests.join('\n')
