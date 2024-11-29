@@ -15,4 +15,25 @@ public class HolaMundoControllerTest {
         String respuesta = controller.hola();
         assertEquals("Hola Mundo", respuesta);
     }
+
+    @Test
+    public void testHola1() {
+        HelloController controller = new HelloController1();
+        String respuesta = controller.hola();
+        assertEquals("Hola Mundo", respuesta);
+    }
+
+    @Test
+    public void testHola2() {
+        HelloController controller = new HelloController2();
+        String respuesta = controller.hola();
+        assertEquals("Hola Mundo", respuesta);
+    }
+
+    @Test
+    public void testHola3() {
+        HelloController controller = new HelloController3();
+        String respuesta = controller.hola();
+        assertEquals("Hola Mundo", respuesta);
+    }
 }

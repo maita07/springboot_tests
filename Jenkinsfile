@@ -51,40 +51,50 @@ pipeline {
     post {
         failure {
             script {
-                // Obtener detalles del commit
-                def gitCommit = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
-                def gitAuthorName = sh(script: 'git log -1 --pretty=%an', returnStdout: true).trim()
-                def gitCommitMessage = sh(script: 'git log -1 --pretty=%B', returnStdout: true).trim()
-                def gitAuthorEmail = sh(script: 'git log -1 --pretty=%ae', returnStdout: true).trim()
+                    // Obtener detalles del commit
+                    def gitCommit = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
+                    def gitAuthorName = sh(script: 'git log -1 --pretty=%an', returnStdout: true).trim()
+                    def gitCommitMessage = sh(script: 'git log -1 --pretty=%B', returnStdout: true).trim()
+                    def gitAuthorEmail = sh(script: 'git log -1 --pretty=%ae', returnStdout: true).trim()
 
-                def subject = "Jenkins Build #${BUILD_NUMBER} - ${currentBuild.currentResult}"
-                def body = """
+                    def subject = "Jenkins Build #${BUILD_NUMBER} - ${currentBuild.currentResult}"
+                    def body = """
                     <p>El build ha terminado con el siguiente resultado: ${currentBuild.currentResult}</p>
                     <p>Detalles del commit:</p>
                     <ul>
-                        <li><strong>Commit:</strong> ${gitCommit}</li>
-                        <li><strong>Autor:</strong> ${gitAuthorName}</li>
-                        <li><strong>Mensaje del commit:</strong> ${gitCommitMessage}</li>
+                    <li><strong>Commit:</strong> ${gitCommit}</li>
+                    <li><strong>Autor:</strong> ${gitAuthorName}</li>
+                    <li><strong>Mensaje del commit:</strong> ${gitCommitMessage}</li>
                     </ul>
                     <p>Ver detalles en Jenkins: ${BUILD_URL}</p>
-                """
+                    """
 
                 // Extraer detalles de pruebas fallidas
                 def failedTests = sh(
-                    script: 'grep "<failure" target/surefire-reports/*.xml || true',
-                    returnStdout: true
+                script: 'grep "<failure" target/surefire-reports/*.xml || true',
+                returnStdout: true
                 ).trim().split('\n')
 
-                // Limitar a 50 errores
-                def limitedErrors = failedTests.take(50)
-                if (limitedErrors) {
-                    body += """
-                        <h3>Las siguientes pruebas fallaron:</h3>
-                        <pre>${limitedErrors.join('\n')}</pre>
-                        <p>Por favor, revisa los reportes completos de las pruebas en:</p>
-                        <a href="${env.GIT_URL}/-/jobs/${BUILD_NUMBER}/test_report">Ver reporte de pruebas</a>
-                    """
+                // Limitar a 50 errores sin usar take()
+                def limitedErrors = []
+                def errorCount = 0
+
+                failedTests.each { error ->
+                if (errorCount < 50) {
+                    limitedErrors.add(error)
+                    errorCount++
+                    }
                 }
+
+                if (limitedErrors) {
+                body += """
+                <h3>Las siguientes pruebas fallaron:</h3>
+                <pre>${limitedErrors.join('\n')}</pre>
+                <p>Por favor, revisa los reportes completos de las pruebas en:</p>
+                <a href="${env.GIT_URL}/-/jobs/${BUILD_NUMBER}/test_report">Ver reporte de pruebas</a>
+                """
+                }
+             
 
                 // Enviar el correo
                 emailext(
