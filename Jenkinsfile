@@ -71,9 +71,9 @@ pipeline {
 
                 // Extraer detalles de pruebas fallidas
                 def failedTests = sh(
-                script: 'grep -E "\\[ERROR\\] FAILURE!|expected" target/surefire-reports/*.xml || true',
+                script: 'grep -E "\\[ERROR\\] .+\\..+Test\\..+ -- Time elapsed.*<<< FAILURE!|expected.*but was.*" target/surefire-reports/*.xml || true',
                 returnStdout: true
-                ).trim().split('\n')
+            ).trim().split('\n')
 
                 // Limitar a 50 errores sin usar take()
                 def limitedErrors = []
