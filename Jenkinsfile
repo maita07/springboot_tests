@@ -52,6 +52,7 @@ pipeline {
             // Obtener el commit y los detalles del autor
             def gitCommit = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
             def gitAuthorName = sh(script: 'git log -1 --pretty=%an', returnStdout: true).trim()
+            def gitAuthorEmail = sh(script: 'git log -1 --pretty=%ae', returnStdout: true).trim()
             def gitCommitMessage = sh(script: 'git log -1 --pretty=%B', returnStdout: true).trim()
 
             // Leer los resultados de las pruebas unitarias
@@ -98,7 +99,7 @@ pipeline {
             emailext(
                 subject: subject,
                 body: body,
-                to: 'jose.maita@eldars.com.ar',
+                to: gitAuthorEmail,
                 mimeType: 'text/html'
             )
         }
