@@ -57,18 +57,7 @@ pipeline {
                 def gitCommitMessage = sh(script: 'git log -1 --pretty=%B', returnStdout: true).trim()
                 def gitAuthorEmail = sh(script: 'git log -1 --pretty=%ae', returnStdout: true).trim()
 
-                // Obtener resultados de las pruebas fallidas
-                def testResultAction = currentBuild.getAction(hudson.tasks.junit.TestResultAction)
-                def failedTests = testResultAction?.getFailedTests()
-                def failedTestsList = []
-                if (failedTests) {
-                    failedTests.each { test ->
-                        failedTestsList.add("Test failed: ${test.name}")
-                    }
-                }
-
-                // Definir el cuerpo del correo
-                def subject = "Jenkins Build #${env.BUILD_NUMBER} - ${currentBuild.currentResult}"
+                def subject = "Jenkins Build #${BUILD_NUMBER} - ${currentBuild.currentResult}"
                 def body = """
                     <p>El build ha terminado con el siguiente resultado: ${currentBuild.currentResult}</p>
                     <p>Detalles del commit:</p>
@@ -77,19 +66,20 @@ pipeline {
                         <li><strong>Autor:</strong> ${gitAuthorName}</li>
                         <li><strong>Mensaje del commit:</strong> ${gitCommitMessage}</li>
                     </ul>
-                    <p>Ver detalles en Jenkins: <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
+                    <p>Ver detalles en Jenkins: ${BUILD_URL}</p>
                 """
 
-                // Si alguna prueba falló, agregar los detalles al cuerpo del correo
-                if (failedTestsList.size() > 0) {
+                // Si las pruebas fallaron, incluir los detalles de las pruebas fallidas en el correo
+                if (currentBuild.currentResult == 'FAILURE') {
+//def failedTests = readFile('target/surefire-reports/*.txt')
+                    //def failedTestNames = failedTests.readLines().findAll { it.contains('FAIL') }.join('\n')
+ //<h3>Las siguientes pruebas fallaron en el paquete ${PACKAGE_NAME} versión ${VERSION}:</h3>
+                    // Modificar el cuerpo del correo para agregar los detalles de las pruebas fallidas
                     body += """
-                        <h3>Las siguientes pruebas fallaron:</h3>
-                        <ul>
-                            ${failedTestsList.collect { "<li>${it}</li>" }.join()}
-                        </ul>
+                        <p>Por favor, revisa los reportes de las pruebas en:</p>
+                        <a href="${env.GIT_URL}/-/jobs/${BUILD_NUMBER}/test_report">Ver reporte de pruebas</a>
                     """
                 }
-
                 // Enviar el correo
                 emailext(
                     subject: subject,
