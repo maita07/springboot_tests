@@ -59,10 +59,15 @@ pipeline {
             def testReports = sh(script: 'find target/surefire-reports/ -name "*.xml"', returnStdout: true).trim().split("\n")
 
             testReports.each { report ->
-                def failedTestsInFile = sh(script: "xmllint --xpath '//failure' ${report} 2>/dev/null", returnStdout: true).trim()
-                if (failedTestsInFile) {
-                    def testCaseName = sh(script: "xmllint --xpath 'string(//failure/@message)' ${report} 2>/dev/null", returnStdout: true).trim()
-                    failedTests.add("Test failed: ${report} - ${testCaseName}")
+                // Usando Groovy para leer y analizar el XML
+                def xmlContent = readFile report
+                def xml = new XmlParser().parseText(xmlContent)
+
+                // Verificar fallos
+                xml.testsuite.testcase.each { testcase ->
+                    if (testcase.failure) {
+                        failedTests.add("Test failed: ${testcase.@classname}.${testcase.@name} - ${testcase.failure.@message}")
+                    }
                 }
             }
 
@@ -96,7 +101,8 @@ pipeline {
                 to: 'jose.maita@eldars.com.ar',
                 mimeType: 'text/html'
             )
-            }
         }
     }
+}
+
 }
