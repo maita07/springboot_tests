@@ -71,7 +71,7 @@ pipeline {
 
                 // Extraer detalles de pruebas fallidas
                 def failedTests = sh(
-                script: 'grep "<failure" target/surefire-reports/*.xml || true',
+                script: 'grep "[ERROR]" target/surefire-reports/*.xml || true',
                 returnStdout: true
                 ).trim().split('\n')
 
@@ -80,7 +80,7 @@ pipeline {
                 def errorCount = 0
 
                 failedTests.each { error ->
-                if (errorCount < 2) {
+                if (errorCount < 50) {
                     limitedErrors.add(error)
                     errorCount++
                     }
