@@ -13,7 +13,7 @@ public class HolaMundoControllerTest {
     public void testHola() {
         HelloController controller = new HelloController();
         String respuesta = controller.hola();
-        assertEquals("Hola Mundo", respuesta);
+        assertEquals("Hola Mun", respuesta);
     }
 
     @Test
