@@ -4,9 +4,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class HelloController {
+public class HelloController1 {
 
-    @GetMapping("/")
+    @GetMapping("/hello1")
     public String hola() {
         return "Hola CHAU";
     }
