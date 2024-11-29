@@ -87,7 +87,7 @@ pipeline {
                 }*/
                 
                 //<pre>${limitedErrors.join('\n')}</pre>
-                if (limitedErrors) {
+                //if (limitedErrors) {
                 body += """
                 <h3>Las siguientes pruebas fallaron:</h3>
                 
@@ -95,7 +95,7 @@ pipeline {
                 <p>Por favor, revisa los reportes completos de las pruebas en:</p>
                 <a href="${env.GIT_URL}/-/jobs/${BUILD_NUMBER}/test_report">Ver reporte de pruebas</a>
                 """
-                }
+                //}
              
 
                 // Enviar el correo
