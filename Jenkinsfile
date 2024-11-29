@@ -52,7 +52,6 @@ pipeline {
             // Obtener el commit y los detalles del autor
             def gitCommit = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
             def gitAuthorName = sh(script: 'git log -1 --pretty=%an', returnStdout: true).trim()
-            def gitAuthorEmail = sh(script: 'git log -1 --pretty=%ae', returnStdout: true).trim()
             def gitCommitMessage = sh(script: 'git log -1 --pretty=%B', returnStdout: true).trim()
 
             // Leer los resultados de las pruebas unitarias
@@ -60,9 +59,9 @@ pipeline {
             def testReports = sh(script: 'find target/surefire-reports/ -name "*.xml"', returnStdout: true).trim().split("\n")
 
             testReports.each { report ->
-                // Usando Groovy para leer y analizar el XML
+                // Usar readXML para leer y analizar el XML
                 def xmlContent = readFile report
-                def xml = new XmlParser().parseText(xmlContent)
+                def xml = readXML text: xmlContent
 
                 // Verificar fallos
                 xml.testsuite.testcase.each { testcase ->
