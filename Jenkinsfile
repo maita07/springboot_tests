@@ -99,7 +99,7 @@ pipeline {
             emailext(
                 subject: subject,
                 body: body,
-                to: gitAuthorEmail,
+                to: ${gitAuthorEmail},
                 mimeType: 'text/html'
             )
         }
