@@ -73,10 +73,10 @@ pipeline {
                 def failedTests = sh(
                 script: 'grep -E "\\[ERROR\\] .+\\..+Test\\..+ -- Time elapsed.*<<< FAILURE!|expected.*but was.*" target/surefire-reports/*.xml || true',
                 returnStdout: true
-            ).trim().split('\n')
+                ).trim().split('\n')
 
                 // Limitar a 50 errores sin usar take()
-                def limitedErrors = []
+               /* def limitedErrors = []
                 def errorCount = 0
 
                 failedTests.each { error ->
@@ -84,12 +84,14 @@ pipeline {
                     limitedErrors.add(error)
                     errorCount++
                     }
-                }
-
+                }*/
+                
+                //<pre>${limitedErrors.join('\n')}</pre>
                 if (limitedErrors) {
                 body += """
                 <h3>Las siguientes pruebas fallaron:</h3>
-                <pre>${limitedErrors.join('\n')}</pre>
+                
+                <pre>${failedTests}</pre>
                 <p>Por favor, revisa los reportes completos de las pruebas en:</p>
                 <a href="${env.GIT_URL}/-/jobs/${BUILD_NUMBER}/test_report">Ver reporte de pruebas</a>
                 """
