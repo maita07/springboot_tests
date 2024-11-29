@@ -47,22 +47,17 @@ pipeline {
             }
         }
     }
-    post {
-    failure {
-        script {
-            // Obtener el commit y los detalles del autor
-            def gitCommit = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
-            def gitAuthorName = sh(script: 'git log -1 --pretty=%an', returnStdout: true).trim()
-            def gitAuthorEmail = sh(script: 'git log -1 --pretty=%ae', returnStdout: true).trim()
-            def gitCommitMessage = sh(script: 'git log -1 --pretty=%B', returnStdout: true).trim()
-
-            def failedTests = currentBuild.rawBuild.getAction(hudson.tasks.junit.TestResultAction).getFailedTests()
+    // Acceder a los resultados de las pruebas fallidas sin usar getRawBuild
+                def testResultAction = currentBuild.getAction(hudson.tasks.junit.TestResultAction)
+                def failedTests = testResultAction?.getFailedTests()
                 def failedTestsList = []
-                failedTests.each { test ->
-                    failedTestsList.add("Test failed: ${test.name}")
+                if (failedTests) {
+                    failedTests.each { test ->
+                        failedTestsList.add("Test failed: ${test.name}")
+                    }
                 }
 
-                // Definir el asunto y cuerpo del correo con base en el resultado del build
+                // Definir el cuerpo del correo
                 def subject = "Jenkins Build #${BUILD_NUMBER} - ${currentBuild.currentResult}"
                 def body = """
                     <p>El build ha terminado con el siguiente resultado: ${currentBuild.currentResult}</p>
