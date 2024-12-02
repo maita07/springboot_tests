@@ -113,24 +113,20 @@ pipeline {
                 // Guardar los resultados en una carpeta específica en GitHub
             withCredentials([usernamePassword(credentialsId: 'github-token', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')]) {
             sh """
-<<<<<<< HEAD
             git config user.name '${gitAuthorName}'
             git config user.email '${gitAuthorEmail}'
+
+            # Intentar hacer checkout a la rama test-reports-${BUILD_NUMBER}, si falla crearla.
             git checkout test-reports-${BUILD_NUMBER} || git checkout -b test-reports-${BUILD_NUMBER}
+
             mkdir -p test-reports/${date}
             cp target/surefire-reports/*.txt test-reports/${date}/
             git add test-reports/${date}/*
             git commit -m "Agregado reporte de pruebas del build ${BUILD_NUMBER}"
             git remote set-url origin https://github.com/${GITHUB_USER}/${GITHUB_REPO}.git
             git push origin test-reports-${BUILD_NUMBER}
-=======
-                git config user.name '${gitAuthorName}'
-                git config user.email '${gitAuthorEmail}'
-                git remote set-url origin https://github.com/${GITHUB_USER}/${GITHUB_REPO}.git
-                git push origin test-reports-${BUILD_NUMBER}
->>>>>>> ba15a1ead2a24c81512a820c5a1b80ed4a181376
             """
-            }
+        }
 
              
 
