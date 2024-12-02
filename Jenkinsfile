@@ -113,20 +113,33 @@ pipeline {
                 // Guardar los resultados en una carpeta específica en GitHub
             withCredentials([usernamePassword(credentialsId: 'github-token', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')]) {
             sh """
+            # Configuración de usuario de Git
             git config user.name '${gitAuthorName}'
             git config user.email '${gitAuthorEmail}'
 
-            # Intentar hacer checkout a la rama test-reports-${BUILD_NUMBER}, si falla crearla.
+            # Verificar si estamos en un repositorio limpio antes de hacer el checkout
+            git status
+
+            # Intentar hacer checkout a la rama test-reports-${BUILD_NUMBER}, si falla, crearla
+            git fetch origin || exit 1
             git checkout test-reports-${BUILD_NUMBER} || git checkout -b test-reports-${BUILD_NUMBER}
+
+            # Asegurarse de que no haya errores en la creación de la nueva rama
+            if [ $? -ne 0 ]; then
+                echo "Error al hacer checkout de la rama test-reports-${BUILD_NUMBER}" && exit 1
+            fi
 
             mkdir -p test-reports/${date}
             cp target/surefire-reports/*.txt test-reports/${date}/
             git add test-reports/${date}/*
             git commit -m "Agregado reporte de pruebas del build ${BUILD_NUMBER}"
+
+            # Establecer la URL remota y hacer push a la nueva rama
             git remote set-url origin https://github.com/${GITHUB_USER}/${GITHUB_REPO}.git
             git push origin test-reports-${BUILD_NUMBER}
             """
         }
+
 
              
 
