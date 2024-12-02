@@ -49,63 +49,65 @@ pipeline {
     }
 
     post {
-        failure {
-            script {
-                    def gitCommit = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
-                    def gitAuthorName = sh(script: 'git log -1 --pretty=%an', returnStdout: true).trim()
-                    def gitCommitMessage = sh(script: 'git log -1 --pretty=%B', returnStdout: true).trim()
-                    def gitAuthorEmail = sh(script: 'git log -1 --pretty=%ae', returnStdout: true).trim()
+    always {
+        script {
+            def gitCommit = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
+            def gitAuthorName = sh(script: 'git log -1 --pretty=%an', returnStdout: true).trim()
+            def gitCommitMessage = sh(script: 'git log -1 --pretty=%B', returnStdout: true).trim()
+            def gitAuthorEmail = sh(script: 'git log -1 --pretty=%ae', returnStdout: true).trim()
 
-                    def subject = "Jenkins Build #${BUILD_NUMBER} - ${currentBuild.currentResult}"
-                    def body = """
-                    <p>El build ha terminado con el siguiente resultado: ${currentBuild.currentResult}</p>
-                    <p>Detalles del commit:</p>
-                    <ul>
-                    <li><strong>Commit:</strong> ${gitCommit}</li>
-                    <li><strong>Autor:</strong> ${gitAuthorName}</li>
-                    <li><strong>Mensaje del commit:</strong> ${gitCommitMessage}</li>
-                    </ul>
-                    """
+            def subject = "Jenkins Build #${BUILD_NUMBER} - ${currentBuild.currentResult}"
+            def body = """
+            <p>El build ha terminado con el siguiente resultado: ${currentBuild.currentResult}</p>
+            <p>Detalles del commit:</p>
+            <ul>
+            <li><strong>Commit:</strong> ${gitCommit}</li>
+            <li><strong>Autor:</strong> ${gitAuthorName}</li>
+            <li><strong>Mensaje del commit:</strong> ${gitCommitMessage}</li>
+            </ul>
+            """
 
-                // Extraer detalles de pruebas fallidas
-                def failedTests = sh(
+            // Extraer detalles de pruebas fallidas
+            def failedTests = sh(
                 script: 'head -n 4 target/surefire-reports/*.txt',
                 returnStdout: true
-                ).trim().split('\n')
-                def date = new Date().format('yyyy-MM-dd-HH-mm-ss')
-                sh "sudo mkdir /home/labqa/logs-pipeline-mobile/test-log-${date}"
-                sh "sudo cp target/surefire-reports/*.txt /home/labqa/logs-pipeline-mobile/test-log-${date}"
+            ).trim().split('\n')
 
+            def date = new Date().format('yyyy-MM-dd-HH-mm-ss')
+            sh "sudo mkdir /home/labqa/logs-pipeline-mobile/test-log-${date}"
+            sh "sudo cp target/surefire-reports/*.txt /home/labqa/logs-pipeline-mobile/test-log-${date}"
 
-                // Limitar a 50 errores
-                def limitedErrors = []
-                def errorCount = 0
+            // Limitar a 50 errores
+            def limitedErrors = []
+            def errorCount = 0
 
-                failedTests.each { error ->
+            failedTests.each { error ->
                 if (errorCount < 50) {
                     limitedErrors.add(error)
                     errorCount++
-                    }
                 }
-                
-                if (limitedErrors) {
+            }
+
+            // Si hay errores, agregarlos al cuerpo del correo
+            if (limitedErrors) {
                 body += """
                 <h3>Información de los siguientes Sets de Tests:</h3>
-                
                 <pre>${limitedErrors.join('\n')}</pre>
                 <p>Por favor, revisa los reportes completos de las pruebas en: /home/labqa/logs-pipeline-mobile</p>
                 """
-                }
-             
-                emailext(
-                    subject: subject,
-                    body: body,
-                    //to: gitAuthorEmail,
-                    to: 'nicolas.batistelli@eldars.com.ar',
-                    mimeType: 'text/html',
-                    attachmentsPattern: 'target/surefire-reports/*.txt'
-                )
+            } else {
+                body += "<p>¡Todos los tests han pasado exitosamente!</p>"
             }
+
+            emailext(
+                subject: subject,
+                body: body,
+                to: 'nicolas.batistelli@eldars.com.ar',
+                mimeType: 'text/html',
+                attachmentsPattern: 'target/surefire-reports/*.txt'
+            )
         }
     }
+}
+
 }
