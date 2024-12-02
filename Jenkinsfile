@@ -69,7 +69,7 @@ pipeline {
 
             // Extraer detalles de pruebas fallidas
             def failedTests = sh(
-                //script: 'target/surefire-reports/*.txt',
+                script: 'cat target/surefire-reports/*.txt',
                 returnStdout: true
             ).trim().split('\n')
 
