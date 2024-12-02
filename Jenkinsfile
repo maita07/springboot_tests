@@ -65,7 +65,6 @@ pipeline {
                     <li><strong>Autor:</strong> ${gitAuthorName}</li>
                     <li><strong>Mensaje del commit:</strong> ${gitCommitMessage}</li>
                     </ul>
-                    <p>Ver detalles en Jenkins: ${BUILD_URL}</p>
                     """
 
                 // Extraer detalles de pruebas fallidas
