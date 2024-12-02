@@ -68,10 +68,10 @@ pipeline {
             """
 
             // Extraer detalles de pruebas fallidas
-            /*def failedTests = sh(
-                script: 'cat target/surefire-reports/*.txt',
+            def failedTests = sh(
+                //script: 'target/surefire-reports/*.txt',
                 returnStdout: true
-            ).trim().split('\n')*/
+            ).trim().split('\n')
 
             def date = new Date().format('yyyy-MM-dd-HH-mm-ss')
             sh "sudo mkdir /home/labqa/logs-pipeline-mobile/test-log-${date}"
