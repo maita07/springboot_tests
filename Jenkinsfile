@@ -48,93 +48,92 @@ pipeline {
         }
     }
 
-post {
-    always {
-    script {
-        def gitCommit = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
-        def gitAuthorName = sh(script: 'git log -1 --pretty=%an', returnStdout: true).trim()
-        def gitCommitMessage = sh(script: 'git log -1 --pretty=%B', returnStdout: true).trim()
-        def gitAuthorEmail = sh(script: 'git log -1 --pretty=%ae', returnStdout: true).trim()
+    post {
+        always {
+            script {
+                def gitCommit = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
+                def gitAuthorName = sh(script: 'git log -1 --pretty=%an', returnStdout: true).trim()
+                def gitCommitMessage = sh(script: 'git log -1 --pretty=%B', returnStdout: true).trim()
+                def gitAuthorEmail = sh(script: 'git log -1 --pretty=%ae', returnStdout: true).trim()
 
-        def subject = "Jenkins Build #${BUILD_NUMBER} - ${currentBuild.currentResult}"
-        def body = """
-        <p>El build ha terminado con el siguiente resultado: ${currentBuild.currentResult}</p>
-        <p>Detalles del commit:</p>
-        <ul>
-        <li><strong>Commit:</strong> ${gitCommit}</li>
-        <li><strong>Autor:</strong> ${gitAuthorName}</li>
-        <li><strong>Mensaje del commit:</strong> ${gitCommitMessage}</li>
-        </ul>
-        """
+                def subject = "Jenkins Build #${BUILD_NUMBER} - ${currentBuild.currentResult}"
+                def body = """
+                <p>El build ha terminado con el siguiente resultado: ${currentBuild.currentResult}</p>
+                <p>Detalles del commit:</p>
+                <ul>
+                    <li><strong>Commit:</strong> ${gitCommit}</li>
+                    <li><strong>Autor:</strong> ${gitAuthorName}</li>
+                    <li><strong>Mensaje del commit:</strong> ${gitCommitMessage}</li>
+                </ul>
+                """
 
-        // Extraer detalles de pruebas fallidas
-        def failedTests = sh(
-            script: 'cat target/surefire-reports/*.txt',
-            returnStdout: true
-        ).trim().split('\n')
+                // Extraer detalles de pruebas fallidas
+                def failedTests = sh(
+                    script: 'cat target/surefire-reports/*.txt',
+                    returnStdout: true
+                ).trim().split('\n')
 
-        def date = new Date().format('yyyy-MM-dd-HH-mm-ss')
-        def logDirectory = "/home/labqa/logs-pipeline-mobile/test-log-${date}"
-        sh "sudo mkdir -p ${logDirectory}"
-        sh "sudo cp target/surefire-reports/*.txt ${logDirectory}"
+                def date = new Date().format('yyyy-MM-dd-HH-mm-ss')
+                def logDirectory = "/home/labqa/logs-pipeline-mobile/test-log-${date}"
+                sh "sudo mkdir -p ${logDirectory}"
+                sh "sudo cp target/surefire-reports/*.txt ${logDirectory}"
 
-        // Limitar a 50 errores
-        def limitedErrors = []
-        def errorCount = 0
+                // Limitar a 50 errores
+                def limitedErrors = []
+                def errorCount = 0
 
-        failedTests.each { error ->
-            if (errorCount < 50) {
-                limitedErrors.add(error)
-                errorCount++
+                failedTests.each { error ->
+                    if (errorCount < 50) {
+                        limitedErrors.add(error)
+                        errorCount++
+                    }
+                }
+
+                // Si hay errores, agregarlos al cuerpo del correo
+                if (limitedErrors) {
+                    body += """
+                    <h3>Información de los siguientes Sets de Tests:</h3>
+                    <pre>${limitedErrors.join('\n')}</pre>
+                    <p>Por favor, revisa los reportes completos de las pruebas en: ${logDirectory}</p>
+                    """
+                } else {
+                    body += "<p>¡Todos los tests han pasado exitosamente!</p>"
+                }
+
+                emailext(
+                    subject: subject,
+                    body: body,
+                    to: 'nicolas.batistelli@eldars.com.ar',
+                    mimeType: 'text/html',
+                    attachmentsPattern: 'target/surefire-reports/*.txt'
+                )
+
+                // Guardar los resultados en una carpeta específica en GitHub
+                sh """
+                git config user.name '${gitAuthorName}'
+                git config user.email '${gitAuthorEmail}'
+                git checkout -b test-reports-${BUILD_NUMBER} || git checkout test-reports-${BUILD_NUMBER}
+                mkdir -p test-reports/${date}
+                cp target/surefire-reports/*.txt test-reports/${date}/
+                git add test-reports/${date}/*
+                git commit -m "Agregado reporte de pruebas del build ${BUILD_NUMBER}"
+                git push origin test-reports-${BUILD_NUMBER}
+                """
+
+                // Comentario sobre los errores en el commit
+                if (limitedErrors) {
+                    def errorMessage = "Se han encontrado errores en los tests. Ver detalles en el commit."
+                    sh """
+                    curl -u ${GITHUB_USER}:${GITHUB_TOKEN} \
+                    -X POST \
+                    -d '{
+                        "body": "${errorMessage}",
+                        "commit_id": "${gitCommit}"
+                    }' \
+                    https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/commits/${gitCommit}/comments
+                    """
+                }
             }
-        }
-
-        // Si hay errores, agregarlos al cuerpo del correo
-        if (limitedErrors) {
-            body += """
-            <h3>Información de los siguientes Sets de Tests:</h3>
-            <pre>${limitedErrors.join('\n')}</pre>
-            <p>Por favor, revisa los reportes completos de las pruebas en: ${logDirectory}</p>
-            """
-        } else {
-            body += "<p>¡Todos los tests han pasado exitosamente!</p>"
-        }
-
-        emailext(
-            subject: subject,
-            body: body,
-            to: 'nicolas.batistelli@eldars.com.ar',
-            mimeType: 'text/html',
-            attachmentsPattern: 'target/surefire-reports/*.txt'
-        )
-
-        // Guardar los resultados en una carpeta específica en GitHub
-        sh """
-        git config user.name '${gitAuthorName}'
-        git config user.email '${gitAuthorEmail}'
-        git checkout -b test-reports-${BUILD_NUMBER} || git checkout test-reports-${BUILD_NUMBER}
-        mkdir -p test-reports/${date}
-        cp target/surefire-reports/*.txt test-reports/${date}/
-        git add test-reports/${date}/*
-        git commit -m "Agregado reporte de pruebas del build ${BUILD_NUMBER}"
-        git push origin test-reports-${BUILD_NUMBER}
-        """
-
-        // Comentario sobre los errores en el commit
-        if (limitedErrors) {
-            def errorMessage = "Se han encontrado errores en los tests. Ver detalles en el commit."
-            sh """
-            curl -u ${GITHUB_USER}:${GITHUB_TOKEN} \
-            -X POST \
-            -d '{
-                "body": "${errorMessage}",
-                "commit_id": "${gitCommit}"
-            }' \
-            https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/commits/${gitCommit}/comments
-            """
         }
     }
 }
-
-}
-
