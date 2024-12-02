@@ -109,30 +109,33 @@ pipeline {
                 )
 
                 // Guardar los resultados en una carpeta específica en GitHub
-                sh """
-                git config user.name '${gitAuthorName}'
-                git config user.email '${gitAuthorEmail}'
-                git checkout -b test-reports-${BUILD_NUMBER} || git checkout test-reports-${BUILD_NUMBER}
-                mkdir -p test-reports/${date}
-                cp target/surefire-reports/*.txt test-reports/${date}/
-                git add test-reports/${date}/*
-                git commit -m "Agregado reporte de pruebas del build ${BUILD_NUMBER}"
-                git push origin test-reports-${BUILD_NUMBER}
-                """
+            withCredentials([usernamePassword(credentialsId: 'github-token', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')]) {
+            sh """
+            git config user.name '${gitAuthorName}'
+            git config user.email '${gitAuthorEmail}'
+            git checkout -b test-reports-${BUILD_NUMBER} || git checkout test-reports-${BUILD_NUMBER}
+            mkdir -p test-reports/${date}
+            cp target/surefire-reports/*.txt test-reports/${date}/
+            git add test-reports/${date}/*
+            git commit -m "Agregado reporte de pruebas del build ${BUILD_NUMBER}"
+            git remote set-url origin https://github.com/${GITHUB_USER}/${GITHUB_REPO}.git
+            git push origin test-reports-${BUILD_NUMBER}
+            """
+             }
 
-                // Comentario sobre los errores en el commit
-                if (limitedErrors) {
-                    def errorMessage = "Se han encontrado errores en los tests. Ver detalles en el commit."
-                    sh """
-                    curl -u ${GITHUB_USER}:${GITHUB_TOKEN} \
-                    -X POST \
-                    -d '{
-                        "body": "${errorMessage}",
-                        "commit_id": "${gitCommit}"
-                    }' \
-                    https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/commits/${gitCommit}/comments
-                    """
-                }
+            // Comentario sobre los errores en el commit
+            if (limitedErrors) {
+            def errorMessage = "Se han encontrado errores en los tests. Ver detalles en el commit."
+            sh """
+            curl -u ${GITHUB_USER}:${GITHUB_TOKEN} \
+            -X POST \
+            -d '{
+                "body": "${errorMessage}",
+                "commit_id": "${gitCommit}"
+            }' \
+            https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/commits/${gitCommit}/comments
+            """
+            }
             }
         }
     }
