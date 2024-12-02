@@ -56,6 +56,7 @@ pipeline {
                 def gitCommitMessage = sh(script: 'git log -1 --pretty=%B', returnStdout: true).trim()
                 def gitAuthorEmail = sh(script: 'git log -1 --pretty=%ae', returnStdout: true).trim()
                 def GITHUB_REPO = 'https://github.com/maita07/springboot_tests'
+                def GITHUB_OWNER = 'maita07'
 
                 def subject = "Jenkins Build #${BUILD_NUMBER} - ${currentBuild.currentResult}"
                 def body = """
@@ -114,7 +115,7 @@ pipeline {
             sh """
             git config user.name '${gitAuthorName}'
             git config user.email '${gitAuthorEmail}'
-            git checkout -b test-reports-${BUILD_NUMBER} || git checkout test-reports-${BUILD_NUMBER}
+            git checkout test-reports-${BUILD_NUMBER} || git checkout -b test-reports-${BUILD_NUMBER}
             mkdir -p test-reports/${date}
             cp target/surefire-reports/*.txt test-reports/${date}/
             git add test-reports/${date}/*
