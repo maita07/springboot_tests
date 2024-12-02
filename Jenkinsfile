@@ -101,7 +101,8 @@ pipeline {
                 emailext(
                     subject: subject,
                     body: body,
-                    to: gitAuthorEmail,
+                    //to: gitAuthorEmail,
+                    to: 'nicolas.batistelli@eldars.com.ar',
                     mimeType: 'text/html',
                     attachmentsPattern: 'target/surefire-reports/*.txt'
                 )
