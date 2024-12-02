@@ -120,7 +120,7 @@ pipeline {
                     # Verificar si estamos en un repositorio limpio antes de hacer el checkout
                     git status
 
-                    # Intentar hacer checkout a la rama test-reports-${BUILD_NUMBER}, si falla, crearla
+                    # Intentar hacer checkout a la rama test-reports-\${BUILD_NUMBER}, si falla, crearla
                     git fetch origin || exit 1
                     git checkout test-reports-\${BUILD_NUMBER} || git checkout -b test-reports-\${BUILD_NUMBER}
 
