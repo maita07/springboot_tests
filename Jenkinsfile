@@ -114,8 +114,8 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'github-token', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')]) {
                     sh """
                     # Configuración de usuario de Git
-                    git config user.name '${gitAuthorName}'
-                    git config user.email '${gitAuthorEmail}'
+                    git config user.name "${gitAuthorName}"
+                    git config user.email "${gitAuthorEmail}"
 
                     # Verificar si estamos en un repositorio limpio antes de hacer el checkout
                     git status
