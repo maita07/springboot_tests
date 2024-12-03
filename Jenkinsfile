@@ -81,7 +81,6 @@ pipeline {
                 // Limitar a 50 errores
                 def limitedErrors = []
                 def errorCount = 0
-
                 failedTests.each { error ->
                     if (errorCount < 50) {
                         limitedErrors.add(error)
@@ -89,17 +88,29 @@ pipeline {
                     }
                 }
 
+                // Subir los reportes al repositorio GitHub/GitLab
+                def repoDir = '/tmp/test-reports'
+                sh "git clone https://github.com/maita07/tests_resultados ${repoDir}" // O usa el enlace de GitLab
+                sh "cp ${logDir}/*.txt ${repoDir}/"
+                dir(repoDir) {
+                    sh 'git add .'
+                    sh 'git commit -m "Agregando reportes de prueba"'
+                    sh 'git push origin main'  // O la rama que corresponda
+                }
+
                 // Si hay errores, agregarlos al cuerpo del correo
                 if (limitedErrors) {
+                    def repoLink = "https://github.com/maita07/tests_resultados/blob/main/${gitCommit}.txt"
                     body += """
                     <h3>Información de los siguientes Sets de Tests:</h3>
                     <pre>${limitedErrors.join('\n')}</pre>
-                    <p>Por favor, revisa los reportes completos de las pruebas en: ${logDir}</p>
+                    <p>Por favor, revisa los reportes completos de las pruebas en el siguiente enlace: <a href='${repoLink}'>Ver reportes</a></p>
                     """
                 } else {
                     body += "<p>¡Todos los tests han pasado exitosamente!</p>"
                 }
 
+                // Enviar correo con los detalles y reportes
                 emailext(
                     subject: subject,
                     body: body,
