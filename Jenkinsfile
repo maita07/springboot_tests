@@ -89,23 +89,23 @@ pipeline {
                 }
 
                 // Subir los reportes al repositorio GitHub/GitLab
-                sh "ls -l ${logDir}/*.txt"
+                sh "sudo ls -l ${logDir}/*.txt"
 
                 // Copiar los archivos .txt a /tmp/test-reports/
                 sh "sudo cp ${logDir}/*.txt /tmp/test-reports/"
 
                 // Verificar que los archivos se hayan copiado correctamente
-                sh "ls -l /tmp/test-reports/"
+                sh "sudo ls -l /tmp/test-reports/"
 
                 // Subir los reportes al repositorio GitHub/GitLab
-                sh "rm -rf /tmp/test-reports"  // Elimina el directorio si ya existe
+                sh "sudo rm -rf /tmp/test-reports"  // Elimina el directorio si ya existe
                 sh "git clone https://github.com/maita07/tests_resultados /tmp/test-reports"
 
                 // Copiar los archivos nuevamente (si es necesario) a /tmp/test-reports/
                 sh "sudo cp ${logDir}/*.txt /tmp/test-reports/"
 
                 // Verificar que los archivos están en /tmp/test-reports/
-                sh "ls -l /tmp/test-reports/"
+                sh "sudo ls -l /tmp/test-reports/"
 
                 // Realizar el commit y push de los archivos
                 dir('/tmp/test-reports') {
