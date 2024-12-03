@@ -76,8 +76,7 @@ pipeline {
                 def date = new Date().format('yyyy-MM-dd-HH-mm-ss')
                 def logDir = "/home/labqa/logs-pipeline-mobile/test-log-${date}"
                 sh "sudo mkdir -p ${logDir}"
-                //sh "sudo cp target/surefire-reports/*.txt ${logDir}"
-                sh "sudo cp ${logDir}/com.example.mi_aplicacion_2.HolaMundoControllerTest.txt /tmp/test-reports/"
+                sh "sudo cp target/surefire-reports/*.txt ${logDir}"
 
                 // Limitar a 50 errores
                 def limitedErrors = []
