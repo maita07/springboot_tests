@@ -81,7 +81,7 @@ pipeline {
                 // Limitar a 50 errores
                 def limitedErrors = []
                 def errorCount = 0
-                failedTests.each { error ->
+                failedTests.each { error -> 
                     if (errorCount < 50) {
                         limitedErrors.add(error)
                         errorCount++
@@ -89,19 +89,10 @@ pipeline {
                 }
 
                 // Subir los reportes al repositorio GitHub/GitLab
-                //sh "sudo ls -l ${logDir}/*.txt"
-
-                // Copiar los archivos .txt a /tmp/test-reports/
-                //sh "sudo cp target/surefire-reports/*.txt /tmp/test-reports/"
-
-                // Verificar que los archivos se hayan copiado correctamente
-                //sh "sudo ls -l /tmp/test-reports/"
-
-                // Subir los reportes al repositorio GitHub/GitLab
                 sh "sudo rm -rf /tmp/test-reports"  // Elimina el directorio si ya existe
                 sh "git clone https://github.com/maita07/tests_resultados /tmp/test-reports"
 
-                // Copiar los archivos nuevamente (si es necesario) a /tmp/test-reports/
+                // Copiar los archivos .txt a /tmp/test-reports/
                 sh "sudo cp target/surefire-reports/*.txt /tmp/test-reports/"
 
                 // Verificar que los archivos están en /tmp/test-reports/
@@ -109,6 +100,8 @@ pipeline {
 
                 // Realizar el commit y push de los archivos
                 dir('/tmp/test-reports') {
+                    sh "git config user.name '${gitAuthorName}'"
+                    sh "git config user.email '${gitAuthorEmail}'"
                     sh 'git add .'
                     sh 'git commit -m "Agregando reportes de prueba"'
                     sh 'git push origin main'  // O la rama que corresponda
