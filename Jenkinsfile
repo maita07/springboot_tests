@@ -91,7 +91,7 @@ pipeline {
                 // Subir los reportes al repositorio GitHub/GitLab
                 def repoDir = '/tmp/test-reports'
                 sh "git clone https://github.com/maita07/tests_resultados ${repoDir}" // O usa el enlace de GitLab
-                sh "cp ${logDir}/*.txt ${repoDir}/"
+                sh "sudo cp ${logDir}/*.txt ${repoDir}/"
                 dir(repoDir) {
                     sh 'git add .'
                     sh 'git commit -m "Agregando reportes de prueba"'
