@@ -67,32 +67,33 @@ pipeline {
                 </ul>
                 """
 
-                // Crear una carpeta con fecha y hora para los archivos de prueba
-                def date = new Date().format('yyyy-MM-dd-HH-mm-ss')
-                def logDir = "/var/jenkins_home/logs-pipeline-mobile/test-log-${date}"
-                sh "mkdir -p ${logDir}"
-                sh "cp target/surefire-reports/*.txt ${logDir}"
-
-                // Crear un enlace a los archivos de prueba
-                def testReportLink = "http://192.168.1.70:8080/job/${env.JOB_NAME}/${env.BUILD_NUMBER}/artifact/logs-pipeline-mobile/test-log-${date}"
-
-                // Construir el cuerpo del correo con los enlaces a los archivos
-                body += """
-                <h3>Informes de pruebas:</h3>
-                <p>Puedes revisar los reportes de las pruebas en el siguiente enlace:</p>
-                <p><a href="${testReportLink}">Ver Reportes de Pruebas</a></p>
-                """
-
-                // Extraer detalles de pruebas fallidas (opcional)
+                // Extraer detalles de pruebas fallidas
                 def failedTests = sh(
-                    script: 'head -n 50 target/surefire-reports/*.txt',
+                    script: 'head -n 4 target/surefire-reports/*.txt',
                     returnStdout: true
                 ).trim().split('\n')
 
-                if (failedTests) {
+                def date = new Date().format('yyyy-MM-dd-HH-mm-ss')
+                def logDir = "/home/labqa/logs-pipeline-mobile/test-log-${date}"
+                sh "sudo mkdir -p ${logDir}"
+                sh "sudo cp target/surefire-reports/*.txt ${logDir}"
+
+                // Limitar a 50 errores
+                def limitedErrors = []
+                def errorCount = 0
+
+                failedTests.each { error ->
+                    if (errorCount < 50) {
+                        limitedErrors.add(error)
+                        errorCount++
+                    }
+                }
+
+                // Si hay errores, agregarlos al cuerpo del correo
+                if (limitedErrors) {
                     body += """
                     <h3>Información de los siguientes Sets de Tests:</h3>
-                    <pre>${failedTests.join('\n')}</pre>
+                    <pre>${limitedErrors.join('\n')}</pre>
                     <p>Por favor, revisa los reportes completos de las pruebas en: ${logDir}</p>
                     """
                 } else {
