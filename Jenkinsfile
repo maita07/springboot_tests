@@ -91,7 +91,7 @@ pipeline {
                 // Subir los reportes al repositorio GitHub/GitLab
                 sh "rm -rf /tmp/test-reports"  // Elimina el directorio si ya existe
                 sh "git clone https://github.com/maita07/tests_resultados /tmp/test-reports"
-                sh "cp ${logDir}/*.txt /tmp/test-reports/"
+                sh "sudo cp ${logDir}/*.txt /tmp/test-reports/"
                 dir('/tmp/test-reports') {
                     sh 'git add .'
                     sh 'git commit -m "Agregando reportes de prueba"'
