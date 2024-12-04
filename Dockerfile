@@ -17,8 +17,6 @@ RUN mvn clean package -DskipTests
 # Usar una imagen base más ligera para ejecutar la aplicación
 FROM openjdk:17-jdk-slim
 
-RUN apt-get update && apt-get install -y maven
-
 # Definir un argumento para la versión
 ARG PROJECT_VERSION
 

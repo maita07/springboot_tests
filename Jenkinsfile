@@ -3,15 +3,24 @@ pipeline {
     tools {
         maven 'Maven 3.9.9'
     }
-    environment {
-        PROJECT_VERSION = sh(script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout", returnStdout: true).trim()
-    }
     stages {
         stage("Build Info") {
             steps {
                 script {
                     BUILD_TRIGGER_BY = currentBuild.getBuildCauses()[0].userId
                     currentBuild.displayName = "#${env.BUILD_NUMBER}"
+                }
+            }
+        }
+        stage('Obtener versión del proyecto') {
+            steps {
+                script {
+                    // Obtener la versión del proyecto de Maven
+                    def projectVersion = sh(script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout", returnStdout: true).trim()
+                    echo "Versión del proyecto: ${projectVersion}"
+
+                    // Usar la versión del proyecto para etiquetar la imagen Docker u otros usos
+                    env.PROJECT_VERSION = projectVersion
                 }
             }
         }
@@ -46,10 +55,10 @@ pipeline {
                     //sh "docker stop myapp || true"
                     //sh "docker rm -f myapp || true"
                     //sh 'docker run -d -p 8081:8081 --name myapp myapp'
-                    sh "docker build --build-arg PROJECT_VERSION=${PROJECT_VERSION} -t myapp:${PROJECT_VERSION} ."
+                    sh "docker build -t myapp:${env.PROJECT_VERSION} ."
                     sh "docker stop myapp || true"
                     sh "docker rm -f myapp || true"
-                    sh "docker run -d -p 8081:8081 --name myapp myapp:${PROJECT_VERSION}"
+                    sh 'docker run -d -p 8081:8081 --name myapp myapp:${env.PROJECT_VERSION}'
                 }
             }
         }
