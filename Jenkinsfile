@@ -3,24 +3,16 @@ pipeline {
     tools {
         maven 'Maven 3.9.9'
     }
+    environment {
+        // Definir la variable global del proyecto
+        PROJECT_NAME = 'mi-aplicacion'  // Nombre del proyecto
+    }
     stages {
         stage("Build Info") {
             steps {
                 script {
                     BUILD_TRIGGER_BY = currentBuild.getBuildCauses()[0].userId
                     currentBuild.displayName = "#${env.BUILD_NUMBER}"
-                }
-            }
-        }
-        stage('Obtener versión del proyecto') {
-            steps {
-                script {
-                    // Obtener la versión del proyecto de Maven
-                    def projectVersion = sh(script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout", returnStdout: true).trim()
-                    echo "Versión del proyecto: ${projectVersion}"
-
-                    // Usar la versión del proyecto para etiquetar la imagen Docker u otros usos
-                    env.PROJECT_VERSION = projectVersion
                 }
             }
         }
@@ -35,6 +27,18 @@ pipeline {
         stage('Clonar código fuente') {
             steps {
                 checkout scm
+            }
+        }
+         stage('Obtener versión del proyecto') {
+            steps {
+                script {
+                    // Obtener la versión del proyecto de Maven
+                    def projectVersion = sh(script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout", returnStdout: true).trim()
+                    echo "Versión del proyecto: ${projectVersion}"
+
+                    // Usar la versión del proyecto para etiquetar la imagen Docker u otros usos
+                    env.PROJECT_VERSION = projectVersion
+                }
             }
         }
         stage('Instalar dependencias') {
@@ -55,10 +59,18 @@ pipeline {
                     //sh "docker stop myapp || true"
                     //sh "docker rm -f myapp || true"
                     //sh 'docker run -d -p 8081:8081 --name myapp myapp'
-                    sh "docker build -t myapp:${env.PROJECT_VERSION} ."
-                    sh "docker stop myapp || true"
-                    sh "docker rm -f myapp || true"
-                    sh 'docker run -d -p 8081:8081 --name myapp myapp:${env.PROJECT_VERSION}'
+                    def dockerTag = "${env.PROJECT_NAME}:${env.PROJECT_VERSION}"
+                    
+                    // Construir la imagen Docker con el tag
+                    sh "docker build -t ${dockerTag} ."
+                    
+                    // Mostrar el tag de la imagen
+                    echo "Imagen Docker construida con el tag: ${dockerTag}"
+
+                    // Opcional: puedes correr el contenedor usando el mismo tag
+                    sh "docker stop ${env.PROJECT_NAME} || true"
+                    sh "docker rm -f ${env.PROJECT_NAME} || true"
+                    sh "docker run -d -p 8081:8081 --name ${env.PROJECT_NAME} ${dockerTag}"
                 }
             }
         }
