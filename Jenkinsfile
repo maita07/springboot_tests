@@ -115,7 +115,7 @@ pipeline {
 
                 // Si hay errores, agregarlos al cuerpo del correo
                 if (limitedErrors) {
-                    def repoLink = "https://github.com/maita07/tests_resultados/blob/main/${gitCommit}.txt"
+                    def repoLink = "https://github.com/maita07/tests_resultados/tree/main/test-log-${date}"
                     body += """
                     <h3>Información de los siguientes Sets de Tests:</h3>
                     <pre>${limitedErrors.join('\n')}</pre>
