@@ -14,6 +14,8 @@ COPY src /app/src
 # Construir el archivo .jar de la aplicación con Maven
 RUN mvn clean package -DskipTests
 
+RUN ls -l /app/target
+
 # Usar una imagen base más ligera para ejecutar la aplicación
 FROM openjdk:17-jdk-slim
 
