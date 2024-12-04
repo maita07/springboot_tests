@@ -20,6 +20,8 @@ FROM openjdk:17-jdk-slim
 # Definir el directorio de trabajo para la aplicación en el contenedor
 WORKDIR /app
 
+ARG PROJECT_VERSION
+
 # Copiar el archivo .jar generado en la etapa de construcción al contenedor
 COPY --from=builder /app/target/mi-aplicacion-${PROJECT_VERSION}.jar /app/mi-aplicacion.jar
 

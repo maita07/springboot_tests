@@ -60,9 +60,9 @@ pipeline {
                     //sh "docker rm -f myapp || true"
                     //sh 'docker run -d -p 8081:8081 --name myapp myapp'
                     def dockerTag = "${env.PROJECT_NAME}:${env.PROJECT_VERSION}"
-                    
-                    // Construir la imagen Docker con el tag
-                    sh "docker build -t ${dockerTag} ."
+
+                    // Construir la imagen Docker con el tag y pasar la versión del proyecto como build-arg
+                    sh "docker build --build-arg PROJECT_VERSION=${env.PROJECT_VERSION} -t ${dockerTag} ."
                     
                     // Mostrar el tag de la imagen
                     echo "Imagen Docker construida con el tag: ${dockerTag}"
