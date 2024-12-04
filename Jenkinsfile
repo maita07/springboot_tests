@@ -93,7 +93,8 @@ pipeline {
                 sh "git clone https://github.com/maita07/tests_resultados /tmp/test-reports"
 
                 // Copiar los archivos .txt a /tmp/test-reports/
-                sh "sudo cp target/surefire-reports/*.txt /tmp/test-reports/"
+                //sh "sudo cp target/surefire-reports/*.txt /tmp/test-reports/"
+                sh "sudo cp -r ${logDir} /tmp/test-reports/"
 
                 // Verificar que los archivos están en /tmp/test-reports/
                 sh "sudo ls -l /tmp/test-reports/"
