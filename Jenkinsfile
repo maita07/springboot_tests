@@ -5,6 +5,8 @@ pipeline {
     }
     environment {
         PROJECT_NAME = 'mi-aplicacion'  // Nombre del proyecto
+        GITHUB_USER = credentials('maita07')
+        GITHUB_PAT = credentials('github-token')
     }
     stages {
         stage("Build Info") {
@@ -115,7 +117,7 @@ pipeline {
                         sh "git config user.name '${gitAuthorName}'"
                         sh "git config user.email '${gitAuthorEmail}'"
                         // Cambiar la URL remota para usar las credenciales
-                        sh "git remote set-url origin https://${GITHUB_USER}:${GITHUB_PAT}@github.com/maita07/tests_resultados.git"
+                        sh 'git remote set-url origin https://$GITHUB_USER:$GITHUB_PAT@github.com/maita07/tests_resultados.git'
                         sh 'git add .'
                         sh 'git commit -m "Agregando reportes de prueba"'
                         sh 'git push origin main'
