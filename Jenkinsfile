@@ -5,6 +5,8 @@ pipeline {
     }
     environment {
         PROJECT_NAME = 'mi-aplicacion'  // Nombre del proyecto
+        GITHUB_USER = credentials('github-username')
+        GITHUB_PAT = credentials('github-token')
     }
     stages {
         stage("Build Info") {
