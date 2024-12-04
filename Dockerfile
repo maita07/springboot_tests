@@ -22,10 +22,8 @@ FROM openjdk:17-jdk-slim
 # Definir el directorio de trabajo para la aplicación en el contenedor
 WORKDIR /app
 
-ARG PROJECT_VERSION
-
 # Copiar el archivo .jar generado en la etapa de construcción al contenedor
-COPY --from=builder /app/target/mi-aplicacion-${PROJECT_VERSION}.jar /app/mi-aplicacion.jar
+COPY --from=builder /app/target/mi-aplicacion-2-0.0.1-SNAPSHOT.jar /app/mi-aplicacion.jar
 
 # Exponer el puerto en el que la aplicación Spring Boot estará corriendo
 EXPOSE 8081

@@ -59,17 +59,21 @@ pipeline {
                     //sh "docker stop myapp || true"
                     //sh "docker rm -f myapp || true"
                     //sh 'docker run -d -p 8081:8081 --name myapp myapp'
+                    // Definir el tag de la imagen Docker usando el nombre del proyecto y la versión
                     def dockerTag = "${env.PROJECT_NAME}:${env.PROJECT_VERSION}"
-
-                    // Construir la imagen Docker con el tag y pasar la versión del proyecto como build-arg
-                    sh "docker build --build-arg PROJECT_VERSION=${env.PROJECT_VERSION} -t ${dockerTag} ."
                     
+                    // Construir la imagen Docker con el tag y pasar la versión del proyecto como build-arg
+                    echo "Construyendo la imagen Docker con el tag: ${dockerTag}"
+                    sh "docker build --build-arg PROJECT_VERSION=${env.PROJECT_VERSION} -t ${dockerTag} ."
+
                     // Mostrar el tag de la imagen
                     echo "Imagen Docker construida con el tag: ${dockerTag}"
 
-                    // Opcional: puedes correr el contenedor usando el mismo tag
+                    // Detener y eliminar contenedores previos (si existen)
                     sh "docker stop ${env.PROJECT_NAME} || true"
                     sh "docker rm -f ${env.PROJECT_NAME} || true"
+
+                    // Ejecutar el contenedor Docker con el tag dinámico
                     sh "docker run -d -p 8081:8081 --name ${env.PROJECT_NAME} ${dockerTag}"
                 }
             }
