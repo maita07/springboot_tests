@@ -99,7 +99,7 @@ pipeline {
                 sh "sudo ls -l /tmp/test-reports/"
 
                 // Realizar el commit y push de los archivos
-                withCredentials([usernamePassword(credentialsId: 'github-pat', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_PAT')]) {
+                withCredentials([usernamePassword(credentialsId: 'github-token', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_PAT')]) {
                     dir('/tmp/test-reports') {
                         // Configurar el usuario de Git
                         sh "git config user.name '${gitAuthorName}'"
