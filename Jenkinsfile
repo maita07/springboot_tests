@@ -69,82 +69,85 @@ pipeline {
     }
 
     post {
-        always {
-            script {
-                node {
-                    def gitCommit = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
-                    def gitAuthorName = sh(script: 'git log -1 --pretty=%an', returnStdout: true).trim()
-                    def gitCommitMessage = sh(script: 'git log -1 --pretty=%B', returnStdout: true).trim()
-                    def gitAuthorEmail = sh(script: 'git log -1 --pretty=%ae', returnStdout: true).trim()
+    always {
+        script {
+            node {
+                def gitCommit = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
+                def gitAuthorName = sh(script: 'git log -1 --pretty=%an', returnStdout: true).trim()
+                def gitCommitMessage = sh(script: 'git log -1 --pretty=%B', returnStdout: true).trim()
+                def gitAuthorEmail = sh(script: 'git log -1 --pretty=%ae', returnStdout: true).trim()
 
-                    def subject = "Jenkins Build #${BUILD_NUMBER} - ${currentBuild.currentResult}"
-                    def body = """
-                    <p>El build ha terminado con el siguiente resultado: ${currentBuild.currentResult}</p>
-                    <p>Detalles del commit:</p>
-                    <ul>
-                    <li><strong>Commit:</strong> ${gitCommit}</li>
-                    <li><strong>Autor:</strong> ${gitAuthorName}</li>
-                    <li><strong>Mensaje del commit:</strong> ${gitCommitMessage}</li>
-                    </ul>
-                    """
+                def subject = "Jenkins Build #${BUILD_NUMBER} - ${currentBuild.currentResult}"
+                def body = """
+                <p>El build ha terminado con el siguiente resultado: ${currentBuild.currentResult}</p>
+                <p>Detalles del commit:</p>
+                <ul>
+                <li><strong>Commit:</strong> ${gitCommit}</li>
+                <li><strong>Autor:</strong> ${gitAuthorName}</li>
+                <li><strong>Mensaje del commit:</strong> ${gitCommitMessage}</li>
+                </ul>
+                """
 
-                    // Extraer detalles de pruebas fallidas
-                    def failedTests = sh(
-                        script: 'head -n 4 target/surefire-reports/*.txt',
-                        returnStdout: true
-                    ).trim().split('\n')
+                // Extraer detalles de pruebas fallidas
+                def failedTests = sh(
+                    script: 'head -n 4 target/surefire-reports/*.txt',
+                    returnStdout: true
+                ).trim().split('\n')
 
-                    // Limitar a los primeros 50 errores usando subList()
-                    def limitedErrors = failedTests[0..Math.min(failedTests.size() - 1, 49)]
+                // Limitar a los primeros 50 errores usando subList()
+                def limitedErrors = failedTests[0..Math.min(failedTests.size() - 1, 49)]
 
-                    def date = new Date().format('yyyy-MM-dd-HH-mm-ss')
-                    def logDir = "/home/labqa/logs-pipeline-mobile/test-log-${date}"
-                    sh "sudo mkdir -p ${logDir}"
-                    sh "sudo cp target/surefire-reports/*.txt ${logDir}"
+                def date = new Date().format('yyyy-MM-dd-HH-mm-ss')
+                def logDir = "/home/labqa/logs-pipeline-mobile/test-log-${date}"
+                sh "sudo mkdir -p ${logDir}"
+                sh "sudo cp target/surefire-reports/*.txt ${logDir}"
 
-                    // Subir los reportes al repositorio GitHub/GitLab
-                    sh "sudo rm -rf /tmp/test-reports"  // Elimina el directorio si ya existe
-                    sh "git clone https://github.com/maita07/tests_resultados /tmp/test-reports"
+                // Subir los reportes al repositorio GitHub/GitLab
+                sh "sudo rm -rf /tmp/test-reports"  // Elimina el directorio si ya existe
+                sh "git clone https://github.com/maita07/tests_resultados /tmp/test-reports"
 
-                    sh "sudo cp -r ${logDir} /tmp/test-reports/"
+                sh "sudo cp -r ${logDir} /tmp/test-reports/"
 
-                    // Verificar que los archivos están en /tmp/test-reports/
-                    sh "sudo ls -l /tmp/test-reports/"
+                // Verificar que los archivos están en /tmp/test-reports/
+                sh "sudo ls -l /tmp/test-reports/"
 
-                    // Realizar el commit y push de los archivos
-                    withCredentials([usernamePassword(credentialsId: 'github-token', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_PAT')]) {
-                        dir('/tmp/test-reports') {
-                            // Configurar el usuario de Git
-                            sh "git config user.name '${gitAuthorName}'"
-                            sh "git config user.email '${gitAuthorEmail}'"
-                            // Cambiar la URL remota para usar las credenciales
-                            sh "git remote set-url origin https://${GITHUB_USER}:${GITHUB_PAT}@github.com/maita07/tests_resultados.git"
-                            sh 'git add .'
-                            sh 'git commit -m "Agregando reportes de prueba"'
-                            sh 'git push origin main'
-                        }
+                // Realizar el commit y push de los archivos
+                withCredentials([usernamePassword(credentialsId: 'github-token', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_PAT')]) {
+                    dir('/tmp/test-reports') {
+                        // Configurar el usuario de Git
+                        sh "git config user.name '${gitAuthorName}'"
+                        sh "git config user.email '${gitAuthorEmail}'"
+                        
+                        // Cambiar la URL remota para usar las credenciales de manera segura
+                        sh 'git remote set-url origin https://${GITHUB_USER}:${GITHUB_PAT}@github.com/maita07/tests_resultados.git'
+                        
+                        // Realizar commit y push
+                        sh 'git add .'
+                        sh 'git commit -m "Agregando reportes de prueba"'
+                        sh 'git push origin main'
                     }
-
-                    // Si hay errores, agregarlos al cuerpo del correo
-                    if (limitedErrors) {
-                        def repoLink = "https://github.com/maita07/tests_resultados/tree/main/test-log-${date}"
-                        body += """
-                        <h3>Información de los siguientes Sets de Tests:</h3>
-                        <pre>${limitedErrors.join('\n')}</pre>
-                        <p>Por favor, revisa los reportes completos de las pruebas en el siguiente enlace: <a href='${repoLink}'>Ver reportes</a></p>
-                        """
-                    }
-
-                    // Enviar correo con los detalles y reportes
-                    emailext(
-                        subject: subject,
-                        body: body,
-                        to: gitAuthorEmail,
-                        mimeType: 'text/html',
-                        attachmentsPattern: 'target/surefire-reports/*.txt'
-                    )
                 }
+
+                // Si hay errores, agregarlos al cuerpo del correo
+                if (limitedErrors) {
+                    def repoLink = "https://github.com/maita07/tests_resultados/tree/main/test-log-${date}"
+                    body += """
+                    <h3>Información de los siguientes Sets de Tests:</h3>
+                    <pre>${limitedErrors.join('\n')}</pre>
+                    <p>Por favor, revisa los reportes completos de las pruebas en el siguiente enlace: <a href='${repoLink}'>Ver reportes</a></p>
+                    """
+                }
+
+                // Enviar correo con los detalles y reportes
+                emailext(
+                    subject: subject,
+                    body: body,
+                    to: gitAuthorEmail,
+                    mimeType: 'text/html',
+                    attachmentsPattern: 'target/surefire-reports/*.txt'
+                )
             }
         }
     }
+}
 }
