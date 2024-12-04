@@ -15,6 +15,14 @@ pipeline {
                 }
             }
         }
+        stage('Instalar Java 17') {
+            steps {
+                script {
+                    sh 'sudo apt-get update'
+                    sh 'sudo apt-get install -y openjdk-17-jdk'
+                }
+            }
+        }
         stage('Clonar código fuente') {
             steps {
                 checkout scm
