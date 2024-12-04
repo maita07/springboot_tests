@@ -70,6 +70,7 @@ pipeline {
 
     post {
         always {
+            node {
             script {
                 def gitCommit = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
                 def gitAuthorName = sh(script: 'git log -1 --pretty=%an', returnStdout: true).trim()
@@ -143,6 +144,6 @@ pipeline {
                     attachmentsPattern: 'target/surefire-reports/*.txt'
                 )
             }
-        }
+        }}
     }
 }
