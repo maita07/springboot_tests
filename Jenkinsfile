@@ -73,8 +73,8 @@ pipeline {
                     returnStdout: true
                 ).trim().split('\n')
 
-                // Limitar a los primeros 50 errores usando take()
-                def limitedErrors = failedTests.take(50)
+                // Limitar a los primeros 50 errores usando subList()
+                def limitedErrors = failedTests[0..Math.min(failedTests.size() - 1, 49)]
 
                 def date = new Date().format('yyyy-MM-dd-HH-mm-ss')
                 def logDir = "/home/labqa/logs-pipeline-mobile/test-log-${date}"
