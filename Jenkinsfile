@@ -73,20 +73,13 @@ pipeline {
                     returnStdout: true
                 ).trim().split('\n')
 
+                // Limitar a los primeros 50 errores usando take()
+                def limitedErrors = failedTests.take(50)
+
                 def date = new Date().format('yyyy-MM-dd-HH-mm-ss')
                 def logDir = "/home/labqa/logs-pipeline-mobile/test-log-${date}"
                 sh "sudo mkdir -p ${logDir}"
                 sh "sudo cp target/surefire-reports/*.txt ${logDir}"
-
-                // Limitar a 50 errores
-                def limitedErrors = []
-                def errorCount = 0
-                failedTests.each { error -> 
-                    if (errorCount < 50) {
-                        limitedErrors.add(error)
-                        errorCount++
-                    }
-                }
 
                 // Subir los reportes al repositorio GitHub/GitLab
                 sh "sudo rm -rf /tmp/test-reports"  // Elimina el directorio si ya existe
@@ -121,8 +114,6 @@ pipeline {
                     <pre>${limitedErrors.join('\n')}</pre>
                     <p>Por favor, revisa los reportes completos de las pruebas en el siguiente enlace: <a href='${repoLink}'>Ver reportes</a></p>
                     """
-                } else {
-                    body += "<p>¡Todos los tests han pasado exitosamente!</p>"
                 }
 
                 // Enviar correo con los detalles y reportes
