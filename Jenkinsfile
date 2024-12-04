@@ -4,7 +4,6 @@ pipeline {
         maven 'Maven 3.9.9'
     }
     environment {
-        // Definir la variable global del proyecto
         PROJECT_NAME = 'mi-aplicacion'  // Nombre del proyecto
     }
     stages {
@@ -55,25 +54,12 @@ pipeline {
         stage('Build & Run Docker') {
             steps {
                 script {
-                    //sh 'docker build -t myapp .'
-                    //sh "docker stop myapp || true"
-                    //sh "docker rm -f myapp || true"
-                    //sh 'docker run -d -p 8081:8081 --name myapp myapp'
-                    // Definir el tag de la imagen Docker usando el nombre del proyecto y la versión
                     def dockerTag = "${env.PROJECT_NAME}:${env.PROJECT_VERSION}"
-                    
-                    // Construir la imagen Docker con el tag y pasar la versión del proyecto como build-arg
                     echo "Construyendo la imagen Docker con el tag: ${dockerTag}"
                     sh "docker build --build-arg PROJECT_VERSION=${env.PROJECT_VERSION} -t ${dockerTag} ."
-
-                    // Mostrar el tag de la imagen
                     echo "Imagen Docker construida con el tag: ${dockerTag}"
-
-                    // Detener y eliminar contenedores previos (si existen)
                     sh "docker stop ${env.PROJECT_NAME} || true"
                     sh "docker rm -f ${env.PROJECT_NAME} || true"
-
-                    // Ejecutar el contenedor Docker con el tag dinámico
                     sh "docker run -d -p 8081:8081 --name ${env.PROJECT_NAME} ${dockerTag}"
                 }
             }
@@ -117,8 +103,6 @@ pipeline {
                 sh "sudo rm -rf /tmp/test-reports"  // Elimina el directorio si ya existe
                 sh "git clone https://github.com/maita07/tests_resultados /tmp/test-reports"
 
-                // Copiar los archivos .txt a /tmp/test-reports/
-                //sh "sudo cp target/surefire-reports/*.txt /tmp/test-reports/"
                 sh "sudo cp -r ${logDir} /tmp/test-reports/"
 
                 // Verificar que los archivos están en /tmp/test-reports/
@@ -134,7 +118,7 @@ pipeline {
                         sh "git remote set-url origin https://${GITHUB_USER}:${GITHUB_PAT}@github.com/maita07/tests_resultados.git"
                         sh 'git add .'
                         sh 'git commit -m "Agregando reportes de prueba"'
-                        sh 'git push origin main'  // O la rama que corresponda
+                        sh 'git push origin main'
                     }
                 }
 
