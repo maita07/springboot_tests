@@ -5,8 +5,6 @@ pipeline {
     }
     environment {
         PROJECT_NAME = 'mi-aplicacion'  // Nombre del proyecto
-        GITHUB_USER = credentials('github-username')
-        GITHUB_PAT = credentials('github-token')
     }
     stages {
         stage("Build Info") {
@@ -30,7 +28,7 @@ pipeline {
                 checkout scm
             }
         }
-        stage('Obtener versión del proyecto') {
+         stage('Obtener versión del proyecto') {
             steps {
                 script {
                     // Obtener la versión del proyecto de Maven
@@ -69,9 +67,8 @@ pipeline {
     }
 
     post {
-    always {
-        script {
-            node {
+        always {
+            script {
                 def gitCommit = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
                 def gitAuthorName = sh(script: 'git log -1 --pretty=%an', returnStdout: true).trim()
                 def gitCommitMessage = sh(script: 'git log -1 --pretty=%B', returnStdout: true).trim()
@@ -117,22 +114,13 @@ pipeline {
                         // Configurar el usuario de Git
                         sh "git config user.name '${gitAuthorName}'"
                         sh "git config user.email '${gitAuthorEmail}'"
-
-                        // Cambiar la URL remota de Git sin exponer las credenciales
-                        sh """
-                            git remote set-url origin https://github.com/maita07/tests_resultados.git
-                            git config --global credential.helper store
-                            echo "https://${GITHUB_USER}:${GITHUB_PAT}@github.com" > ~/.git-credentials
-                        """
-
-                        // Realizar commit y push
+                        // Cambiar la URL remota para usar las credenciales
+                        sh "git remote set-url origin https://${GITHUB_USER}:${GITHUB_PAT}@github.com/maita07/tests_resultados.git"
                         sh 'git add .'
                         sh 'git commit -m "Agregando reportes de prueba"'
                         sh 'git push origin main'
                     }
                 }
-
-
 
                 // Si hay errores, agregarlos al cuerpo del correo
                 if (limitedErrors) {
@@ -155,5 +143,4 @@ pipeline {
             }
         }
     }
-}
 }
