@@ -3,20 +3,15 @@ pipeline {
     tools {
         maven 'Maven 3.9.9'
     }
+    environment {
+        PROJECT_VERSION = sh(script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout", returnStdout: true).trim()
+    }
     stages {
-        stage("Build Info") {
+        stage('Build Info') {
             steps {
                 script {
                     BUILD_TRIGGER_BY = currentBuild.getBuildCauses()[0].userId
                     currentBuild.displayName = "#${env.BUILD_NUMBER}"
-                }
-            }
-        }
-        stage('Instalar Java 17') {
-            steps {
-                script {
-                    sh 'sudo apt-get update'
-                    sh 'sudo apt-get install -y openjdk-17-jdk'
                 }
             }
         }
@@ -36,13 +31,14 @@ pipeline {
                 junit '**/target/surefire-reports/*.xml'
             }
         }
-        stage('Build & Run Docker') {
+        stage('Build Docker') {
             steps {
                 script {
-                    sh 'docker build -t myapp .'
+                    // Construir la imagen Docker con la versión dinámica
+                    sh "docker build --build-arg PROJECT_VERSION=${PROJECT_VERSION} -t myapp:${PROJECT_VERSION} ."
                     sh "docker stop myapp || true"
                     sh "docker rm -f myapp || true"
-                    sh 'docker run -d -p 8081:8081 --name myapp myapp'
+                    sh "docker run -d -p 8081:8081 --name myapp myapp:${PROJECT_VERSION}"
                 }
             }
         }
