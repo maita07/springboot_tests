@@ -117,16 +117,17 @@ pipeline {
                         // Configurar el usuario de Git
                         sh "git config user.name '${gitAuthorName}'"
                         sh "git config user.email '${gitAuthorEmail}'"
-                        
+
                         // Cambiar la URL remota para usar las credenciales de manera segura
-                        sh 'git remote set-url origin https://${GITHUB_USER}:${GITHUB_PAT}@github.com/maita07/tests_resultados.git'
-                        
+                        sh "git remote set-url origin https://${GITHUB_USER}:${GITHUB_PAT}@github.com/maita07/tests_resultados.git"
+
                         // Realizar commit y push
                         sh 'git add .'
                         sh 'git commit -m "Agregando reportes de prueba"'
                         sh 'git push origin main'
                     }
                 }
+
 
                 // Si hay errores, agregarlos al cuerpo del correo
                 if (limitedErrors) {
