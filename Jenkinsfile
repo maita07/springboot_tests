@@ -91,8 +91,16 @@ pipeline {
                 def body = createEmailBody(commitInfo)
                 
                 // Subir reportes de pruebas a GitHub
-                uploadTestReports(commitInfo)
+                def repoLink = uploadTestReports(commitInfo)
                 
+                // Si hay errores de pruebas, agregar link a los reportes en GitHub
+                if (repoLink) {
+                    body += """
+                        <h3>Información de los siguientes Sets de Tests:</h3>
+                        <p>Por favor, revisa los reportes completos de las pruebas en el siguiente enlace: <a href='${repoLink}'>Ver reportes</a></p>
+                    """
+                }
+
                 // Enviar correo
                 sendEmail(body)
             }
@@ -148,6 +156,9 @@ def uploadTestReports(commitInfo) {
             sh 'git push origin main'
         }
     }
+
+    // Si hay reportes, devolvemos el enlace a los reportes en GitHub
+    return "https://github.com/maita07/tests_resultados/tree/main/test-log-${date}"
 }
 
 def sendEmail(body) {
